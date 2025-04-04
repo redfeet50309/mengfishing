@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小濛濛大冒險 - 收集圖鑑</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1><i class="fas fa-fish"></i> 小濛濛大冒險</h1>
+            <div class="stats">
+                <span id="caught-fish" class="caught-counter"><i class="fas fa-trophy"></i> 已捕獲: 0/20</span>
+                <button id="collection-btn"><i class="fas fa-book-open"></i> 查看圖鑑</button>
+            </div>
+        </header>
+
+        <div class="fishing-area">
+            <div class="sky">
+                <div class="cloud cloud1"></div>
+                <div class="cloud cloud2"></div>
+                <div class="sun"></div>
+            </div>
+            <div class="water"></div>
+            <div class="fishing-boat">
+                <div class="boat-body"></div>
+                <div class="boat-sail"></div>
+                <div class="boat-cabin"></div>
+                <div class="fisherman"></div>
+            </div>
+            <div id="fish-hook" class="hidden"></div>
+            <div id="splash" class="hidden"></div>
+            <div id="float-object" class="hidden"></div>
+            <div class="fish-shadow hidden"></div>
+        </div>
+
+        <div class="controls">
+            <button id="cast-btn"><i class="fas fa-arrow-down"></i> 甩竿</button>
+        </div>
+
+        <div class="status-message">
+            <p id="status-text">點擊「甩竿」開始釣魚</p>
+        </div>
+
+        <!-- 轉盤區域 -->
+        <div class="wheel-container hidden">
+            <div class="wheel-header">
+                <h2>魚類稀有度轉盤</h2>
+                <p id="game-status">轉動轉盤決定魚的稀有度！</p>
+            </div>
+            
+            <div class="wheel-area">
+                <div class="wheel-svg-container">
+                    <!-- 添加指針指向提示線 -->
+                    <div class="wheel-0-degree-marker"></div>
+                    
+                    <svg id="wheel" class="wheel" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
+                        <!-- 普通 - 綠色 (0-180度) 50% -->
+                        <path d="M100,100 L100,0 A100,100 0 0,1 100,200 z" fill="#4CAF50" data-rarity="1"></path>
+                        
+                        <!-- 高級 - 藍色 (180-270度) 25% -->
+                        <path d="M100,100 L100,200 A100,100 0 0,1 0,100 z" fill="#2196F3" data-rarity="2"></path>
+                        
+                        <!-- 稀有 - 紫色 (270-342度) 20% -->
+                        <path d="M100,100 L0,100 A100,100 0 0,1 30.9,11.8 z" fill="#9C27B0" data-rarity="3"></path>
+                        
+                        <!-- 傳說 - 金色 (342-360度) 5% -->
+                        <path d="M100,100 L30.9,11.8 A100,100 0 0,1 100,0 z" fill="#FFC107" data-rarity="4"></path>
+                        
+                        <!-- 中心點 -->
+                        <circle cx="100" cy="100" r="15" fill="#333"></circle>
+                        
+                        <!-- 角度參考標記 -->
+                        <line x1="100" y1="100" x2="100" y2="0" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="5,5" />
+                    </svg>
+                    
+                    <!-- 轉盤指針 -->
+                    <div class="wheel-pointer"></div>
+                    <div class="pointer-base"></div>
+                </div>
+            </div>
+            
+            <!-- 轉盤機率說明 -->
+            <div class="rarity-legend">
+                <div class="legend-title">稀有度機率:</div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #4CAF50;"></span>
+                    <span class="legend-text">普通: 50%</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #2196F3;"></span>
+                    <span class="legend-text">高級: 25%</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #9C27B0;"></span>
+                    <span class="legend-text">稀有: 20%</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #FFC107;"></span>
+                    <span class="legend-text">傳說: 5%</span>
+                </div>
+            </div>
+            
+            <!-- 轉盤控制按鈕 -->
+            <div class="wheel-controls">
+                <button id="stop-wheel" class="stop-btn">拉起魚竿</button>
+            </div>
+            
+            <!-- 轉盤結果顯示 -->
+            <div class="wheel-result">
+                <div class="result-message">你釣到了一條魚！</div>
+                <p>魚的稀有度: <span id="rarity-result"></span></p>
+                <button id="catch-fish" class="btn">繼續釣魚</button>
+            </div>
+        </div>
+
+        <!-- 捕獲魚類面板 -->
+        <div id="fish-caught-panel" class="modal hidden">
+            <div class="modal-content">
+                <h2><i class="fas fa-fish"></i> 釣到魚了！</h2>
+                <div class="fish-info">
+                    <img id="caught-fish-img" src="" alt="魚">
+                    <div>
+                        <h3 id="caught-fish-name"></h3>
+                        <p id="caught-fish-rarity"></p>
+                        <p id="caught-fish-desc"></p>
+                    </div>
+                </div>
+                <button id="continue-btn">繼續釣魚</button>
+            </div>
+        </div>
+
+        <!-- 魚類圖鑑面板 -->
+        <div id="collection-panel" class="modal hidden">
+            <div class="modal-content">
+                <h2><i class="fas fa-book"></i> 魚類圖鑑 <span id="collection-count"></span></h2>
+                <div id="fish-collection" class="fish-grid"></div>
+                <button id="close-collection-btn">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="restart-button-container">
+        <button id="restart-adventure-btn"><i class="fas fa-redo"></i> 重新開始冒險</button>
+    </div>
+
+    <script src="fish-data.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
