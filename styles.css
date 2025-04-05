@@ -310,24 +310,45 @@ header h1 {
     100% { transform: scale(2); opacity: 0; }
 }
 
+/* 魚影樣式 */
 .fish-shadow {
     position: absolute;
     width: 50px;
-    height: 25px;
-    background: radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 70%);
+    height: 30px;
+    background-color: rgba(0, 0, 0, 0.4);
     border-radius: 50%;
-    bottom: 20px;
-    left: 45%;
-    z-index: 3;
-    animation: fish-movement 5s infinite ease-in-out;
+    bottom: 10%;
+    transform: translateY(50%);
+    filter: blur(3px);
+    z-index: 2;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
 }
 
-@keyframes fish-movement {
-    0% { transform: translateX(-30px) scaleX(0.8); opacity: 0.2; }
-    25% { transform: translateX(30px) scaleX(1.2); opacity: 0.6; }
-    50% { transform: translateX(0) scaleX(1); opacity: 0.4; }
-    75% { transform: translateX(-20px) scaleX(0.9); opacity: 0.5; }
-    100% { transform: translateX(-30px) scaleX(0.8); opacity: 0.2; }
+/* 魚影游動動畫 */
+@keyframes fish-swim-left {
+    0% { transform: translateX(20px) scaleX(1); }
+    50% { transform: translateX(-20px) scaleX(1.1); }
+    100% { transform: translateX(20px) scaleX(1); }
+}
+
+@keyframes fish-swim-right {
+    0% { transform: translateX(-20px) scaleX(1); }
+    50% { transform: translateX(20px) scaleX(1.1); }
+    100% { transform: translateX(-20px) scaleX(1); }
+}
+
+/* 浮標晃動動畫 */
+@keyframes bobbing {
+    0% { transform: translateY(0); }
+    25% { transform: translateY(-5px); }
+    50% { transform: translateY(0); }
+    75% { transform: translateY(5px); }
+    100% { transform: translateY(0); }
+}
+
+.bobbing {
+    animation: bobbing 0.8s ease-in-out;
 }
 
 .controls {
@@ -469,53 +490,147 @@ button:disabled {
 
 .fish-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 15px;
-    margin-bottom: 20px;
+    margin-top: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
-.fish-item {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    text-align: center;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+.fish-card {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
 }
 
-.fish-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+.fish-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-.fish-item img {
-    width: 100%;
+.fish-card.locked {
+    background-color: #f5f5f5;
+    filter: grayscale(100%);
+}
+
+.fish-card-image {
     height: 100px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f0f8ff;
+    position: relative;
+}
+
+.fish-card-image img {
+    width: 80%;
+    height: auto;
     object-fit: contain;
+}
+
+.fish-card-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 20px;
+}
+
+.fish-card-info {
+    padding: 10px;
+}
+
+.fish-card-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fish-card-attributes {
+    font-size: 12px;
+    color: #777;
+}
+
+.fish-card-rarity {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.fish-card-rarity.rarity-1 {
+    background-color: #4CAF50;
+}
+
+.fish-card-rarity.rarity-2 {
+    background-color: #2196F3;
+}
+
+.fish-card-rarity.rarity-3 {
+    background-color: #9C27B0;
+}
+
+.fish-card-rarity.rarity-4 {
+    background-color: #FFC107;
+    color: #333;
+}
+
+.fish-card-hint {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    color: #666;
+    font-size: 14px;
+    cursor: help;
+}
+
+.fish-card-hint:hover {
+    color: #2196F3;
+}
+
+/* 提示工具提示 */
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 1000;
+    max-width: 200px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
     margin-bottom: 5px;
 }
 
-.fish-item.uncaught img {
-    filter: brightness(0.3) grayscale(1);
-}
-
-.fish-item.uncaught .fish-name {
-    color: #999;
-}
-
-.fish-item .fish-name {
-    font-weight: bold;
-    margin-bottom: 3px;
-}
-
-.rarity-1 { color: #333; }
-.rarity-2 { color: #1e88e5; }
-.rarity-3 { color: #8e24aa; }
-.rarity-4 { 
-    color: #ffc107; 
-    text-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+.tooltip.visible {
+    opacity: 1;
 }
 
 /* 響應式設計 */
@@ -573,238 +688,114 @@ button:disabled {
     height: 300px;
     margin: 0 auto;
     perspective: 1000px;
-    transform-style: flat;
+    transform-style: preserve-3d;
     backface-visibility: hidden;
     will-change: transform;
-    aspect-ratio: 1/1;
+}
+
+.wheel-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .wheel-svg-container {
     position: relative;
     width: 100%;
     height: 100%;
-    aspect-ratio: 1/1;
     display: flex;
     justify-content: center;
     align-items: center;
-    transform: translateZ(0);
 }
 
 .wheel {
-    width: 100%;
-    height: 100%;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
     position: relative;
-    will-change: transform;
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+    border: 4px solid white;
+    background-image: conic-gradient(
+        #FFC107 0% 5%,     /* 傳說: 5% (0°~18°) */
+        #9C27B0 5% 20%,    /* 稀有: 15% (18°~72°) */
+        #2196F3 20% 50%,   /* 高級: 30% (72°~180°) */
+        #4CAF50 50% 100%   /* 普通: 50% (180°~360°) */
+    );
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: rotate(0deg);
     transform-origin: center center;
-    transition: transform 0.05s linear;
-    backface-visibility: hidden;
-    overflow: visible;
-    box-sizing: content-box;
-    transform: translateZ(0);
-    -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
-    mask-image: radial-gradient(circle, white 100%, black 100%);
 }
 
+.wheel:after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background-color: #333;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+/* 指針固定在頂部 */
 .wheel-pointer {
     position: absolute;
-    top: -45px;
+    top: -25px;
     left: 50%;
     transform: translateX(-50%);
-    width: 30px;
-    height: 50px;
-    background-color: #f44336;
-    clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
-    z-index: 20;
-    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.7));
-    transform-origin: center bottom;
-    will-change: transform;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    border: 2px solid white;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid #ff3333;
+    z-index: 30;
+    filter: drop-shadow(0 0 5px rgba(255, 51, 51, 0.8));
+    pointer-events: none;
 }
 
-/* 更新指針底座位置 */
-.pointer-base {
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40px;
-    height: 18px;
-    background-color: #333;
-    border-radius: 5px 5px 0 0;
-    z-index: 19;
-    border: 1px solid white;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+.wheel.spinning {
+    animation: spin 2s linear infinite;
 }
 
-/* 添加一個參考線，幫助確認指針的0度位置 */
-.wheel-svg-container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 1px;
-    height: 15px;
-    background-color: rgba(255, 255, 255, 0.5);
-    transform: translateX(-50%);
-    z-index: 18;
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-.wheel-controls {
-    position: relative;
-    width: 100%;
-    text-align: center;
-    margin-top: 20px;
-    z-index: 10;
-    transform: translateZ(0);
-    perspective: 1000px;
+.wheel.slowing-down {
+    animation: none;
+    transition: transform 1.5s cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-.btn-secondary {
-    background-color: #777;
-    margin-left: 10px;
-}
-
-.btn-secondary:hover {
-    background-color: #555;
-}
-
-/* 轉盤說明文字 */
-.wheel-instruction {
-    position: absolute;
-    top: -110px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 8px 15px;
-    border-radius: 20px;
-    font-size: 18px;
-    text-align: center;
-    max-width: 300px;
-    z-index: 25;
-}
-
-/* 轉盤結果動畫 */
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(-20px);
-    }
-    60% {
-        transform: translateY(-10px);
-    }
-}
-
-/* 修改指針動畫效果 */
-@keyframes pointer-pulse {
-    0% {
-        transform: translateX(-50%) scale(1);
-    }
-    50% {
-        transform: translateX(-50%) scale(1.1);
-    }
-    100% {
-        transform: translateX(-50%) scale(1);
-    }
-}
-
-.wheel-pointer.active {
-    animation: pointer-pulse 0.6s infinite;
-}
-
-.stop-btn {
-    padding: 15px 30px;
-    font-size: 22px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-    margin-top: 10px;
-    animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    50% {
-        box-shadow: 0 4px 20px rgba(255, 0, 0, 0.6);
-    }
-    100% {
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-}
-
+/* 轉盤結果區域 */
 .wheel-result {
-    position: absolute;
-    width: 80%;
-    max-width: 400px;
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.95);
+    margin-top: 20px;
+    background-color: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
-    font-size: 20px;
+    padding: 15px;
     text-align: center;
-    margin: 20px auto;
-    color: #333;
+    color: white;
     display: none;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transform: translateZ(0);
-    will-change: transform;
-    backface-visibility: hidden;
-    z-index: 100;
-    left: 0;
-    right: 0;
-    bottom: 10%;
 }
 
-.result-message {
-    font-weight: bold;
-    margin-bottom: 15px;
-    font-size: 26px;
-}
-
-/* 更新稀有度顏色樣式 */
-#rarity-result.rarity-1 { 
-    color: #4CAF50; /* 普通 - 綠色 */
-    font-weight: bold;
-    font-size: 28px;
-}
-
-#rarity-result.rarity-2 { 
-    color: #2196F3; /* 高級 - 藍色 */
-    font-weight: bold;
-    font-size: 28px;
-}
-
-#rarity-result.rarity-3 { 
-    color: #9C27B0; /* 稀有 - 紫色 */
-    font-weight: bold;
-    font-size: 28px;
-    text-shadow: 0 0 5px rgba(156, 39, 176, 0.5);
-}
-
-#rarity-result.rarity-4 { 
-    color: #FFC107; /* 傳說 - 金色 */
-    font-weight: bold;
-    font-size: 28px;
-    text-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
-    animation: glow 1s infinite alternate;
-}
-
-@keyframes glow {
-    from {
-        text-shadow: 0 0 5px rgba(255, 193, 7, 0.8);
-    }
-    to {
-        text-shadow: 0 0 15px rgba(255, 193, 7, 1);
-    }
+.wheel-result p {
+    font-size: 20px;
+    margin: 10px 0;
 }
 
 /* 轉盤機率說明樣式 */
@@ -894,44 +885,12 @@ button:disabled {
     z-index: 10;
 }
 
-.wheel-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    padding: 20px;
-    box-sizing: border-box;
-    overflow: hidden;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-}
-
 svg {
     width: 100%;
     height: 100%;
     display: block;
     transform: translateZ(0);
     aspect-ratio: 1/1;
-}
-
-/* 添加0度位置標記器樣式 */
-.wheel-0-degree-marker {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 2px;
-    height: 10px;
-    background-color: white;
-    transform: translateX(-50%);
-    z-index: 25;
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
 }
 
 /* 新魚特效 */
@@ -1000,4 +959,522 @@ svg {
 
 #restart-adventure-btn i {
     margin-right: 8px;
+}
+
+/* 新增環境選擇器樣式 */
+.environment-selector {
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.environment-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.environment-options {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.environment-btn {
+    background-color: #e0e0e0;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    position: relative;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.environment-btn i {
+    margin-right: 5px;
+}
+
+.environment-btn.active {
+    background-color: #2196F3;
+    color: white;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+.environment-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 環境進度顯示 */
+.env-progress {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+/* 時間顯示 */
+.time-display {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 8px 15px;
+    margin: 10px 0 15px 0;
+    font-weight: bold;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.time-icon {
+    margin-right: 10px;
+    font-size: 18px;
+    color: #f39c12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.6);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#current-time {
+    font-size: 18px;
+    margin: 0 10px;
+    padding: 3px 10px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.time-morning {
+    color: #ff6b6b;
+    background-color: rgba(255, 107, 107, 0.1);
+}
+
+.time-noon {
+    color: #ff9e40;
+    background-color: rgba(255, 158, 64, 0.1);
+}
+
+.time-evening {
+    color: #4b6584;
+    background-color: rgba(75, 101, 132, 0.1);
+}
+
+.time-change-info {
+    font-size: 12px;
+    color: #777;
+    margin-left: 10px;
+    font-style: italic;
+}
+
+/* 時間相關背景樣式 */
+.fishing-area.morning {
+    background-image: linear-gradient(to bottom, #87ceeb, #4dc7ff);
+}
+
+.fishing-area.noon {
+    background-image: linear-gradient(to bottom, #5d9ee3, #1e88e5);
+}
+
+.fishing-area.evening {
+    background-image: linear-gradient(to bottom, #4a5568, #2d3748);
+}
+
+/* 環境相關背景樣式 */
+.fishing-area.coastal {
+    background-image: linear-gradient(to bottom, var(--bg-top, #87ceeb), var(--bg-bottom, #4da6ff));
+    --bg-top: #87ceeb;
+    --bg-bottom: #4da6ff;
+}
+
+.fishing-area.coastal.morning {
+    --bg-top: #87ceeb;
+    --bg-bottom: #4da6ff;
+}
+
+.fishing-area.coastal.noon {
+    --bg-top: #5d9ee3;
+    --bg-bottom: #1e88e5;
+}
+
+.fishing-area.coastal.evening {
+    --bg-top: #4a5568;
+    --bg-bottom: #2d3748;
+}
+
+.fishing-area.sea {
+    --bg-top: #0077be;
+    --bg-bottom: #005f9e;
+}
+
+.fishing-area.sea.morning {
+    --bg-top: #0077be;
+    --bg-bottom: #005f9e;
+}
+
+.fishing-area.sea.noon {
+    --bg-top: #00569e;
+    --bg-bottom: #00417a;
+}
+
+.fishing-area.sea.evening {
+    --bg-top: #003366;
+    --bg-bottom: #001a33;
+}
+
+.fishing-area.freshwater {
+    --bg-top: #7cbb00;
+    --bg-bottom: #5c8a00;
+}
+
+.fishing-area.freshwater.morning {
+    --bg-top: #7cbb00;
+    --bg-bottom: #5c8a00;
+}
+
+.fishing-area.freshwater.noon {
+    --bg-top: #65a30d;
+    --bg-bottom: #4d7c0f;
+}
+
+.fishing-area.freshwater.evening {
+    --bg-top: #3f6212;
+    --bg-bottom: #365314;
+}
+
+.fishing-area.lake {
+    --bg-top: #4f98ca;
+    --bg-bottom: #3a7ca5;
+}
+
+.fishing-area.lake.morning {
+    --bg-top: #4f98ca;
+    --bg-bottom: #3a7ca5;
+}
+
+.fishing-area.lake.noon {
+    --bg-top: #3a7ca5;
+    --bg-bottom: #2c5d7d;
+}
+
+.fishing-area.lake.evening {
+    --bg-top: #2c5d7d;
+    --bg-bottom: #1e3d53;
+}
+
+/* 環境和時間視覺效果 */
+.fishing-area.morning .sky {
+    background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 100%);
+}
+
+.fishing-area.noon .sky {
+    background: linear-gradient(180deg, #1E90FF 0%, #87CEEB 100%);
+}
+
+.fishing-area.evening .sky {
+    background: linear-gradient(180deg, #191970 0%, #4B0082 100%);
+}
+
+/* 沿岸環境 */
+.fishing-area.coastal .water {
+    background: linear-gradient(180deg, #4682B4 0%, #20B2AA 70%, #F5DEB3 100%);
+}
+
+.fishing-area.coastal.morning {
+    background: linear-gradient(180deg, #87CEEB 0%, #ADD8E6 100%);
+}
+
+.fishing-area.coastal.noon {
+    background: linear-gradient(180deg, #00BFFF 0%, #1E90FF 100%);
+}
+
+.fishing-area.coastal.evening {
+    background: linear-gradient(180deg, #191970 0%, #4B0082 100%);
+}
+
+/* 海水環境 */
+.fishing-area.sea .water {
+    background: linear-gradient(180deg, #0000CD 0%, #00008B 80%, #191970 100%);
+}
+
+.fishing-area.sea.morning {
+    background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 100%);
+}
+
+.fishing-area.sea.noon {
+    background: linear-gradient(180deg, #00BFFF 0%, #0000FF 100%);
+}
+
+.fishing-area.sea.evening {
+    background: linear-gradient(180deg, #191970 0%, #000080 100%);
+}
+
+/* 淡水環境 */
+.fishing-area.freshwater .water {
+    background: linear-gradient(180deg, #20B2AA 0%, #008080 70%, #2F4F4F 100%);
+}
+
+.fishing-area.freshwater.morning {
+    background: linear-gradient(180deg, #87CEEB 0%, #66CDAA 100%);
+}
+
+.fishing-area.freshwater.noon {
+    background: linear-gradient(180deg, #00BFFF 0%, #20B2AA 100%);
+}
+
+.fishing-area.freshwater.evening {
+    background: linear-gradient(180deg, #4B0082 0%, #2F4F4F 100%);
+}
+
+/* 湖泊環境 */
+.fishing-area.lake .water {
+    background: linear-gradient(180deg, #5F9EA0 0%, #008B8B 70%, #2F4F4F 100%);
+}
+
+.fishing-area.lake.morning {
+    background: linear-gradient(180deg, #87CEEB 0%, #5F9EA0 100%);
+}
+
+.fishing-area.lake.noon {
+    background: linear-gradient(180deg, #00BFFF 0%, #008B8B 100%);
+}
+
+.fishing-area.lake.evening {
+    background: linear-gradient(180deg, #4B0082 0%, #2F4F4F 100%);
+}
+
+/* 太陽和月亮 */
+.fishing-area.morning .sun,
+.fishing-area.noon .sun {
+    display: block;
+}
+
+.fishing-area.evening .sun {
+    display: none;
+}
+
+.fishing-area.evening::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: 50px;
+    width: 30px;
+    height: 30px;
+    background: #f5f5f5;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    z-index: 3;
+}
+
+/* 時間變化通知 */
+.time-change-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 1000;
+    font-weight: bold;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.5s forwards;
+}
+
+.time-change-notification.fade-out {
+    animation: fadeOut 0.5s forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translate(-50%, 0); }
+    to { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+/* 圖鑑篩選器 */
+.collection-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+}
+
+.filter-group label {
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.filter-group select {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: white;
+}
+
+/* 新增：魚捕獲通知樣式 */
+.fish-notification {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    color: white;
+    z-index: 1000;
+    animation: slideIn 0.5s ease-out;
+    max-width: 90%;
+    width: 350px;
+}
+
+.fish-notification.fade-out {
+    animation: fadeOut 1s forwards;
+}
+
+.fish-notification img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-right: 15px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.fish-notification .notification-content {
+    flex: 1;
+}
+
+.fish-notification h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: #ffeb3b;
+}
+
+.fish-notification .fish-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.fish-notification .fish-rarity {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.fish-notification .rarity-1 {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.fish-notification .rarity-2 {
+    background-color: #2196F3;
+    color: white;
+}
+
+.fish-notification .rarity-3 {
+    background-color: #9C27B0;
+    color: white;
+}
+
+.fish-notification .rarity-4 {
+    background-color: #FFC107;
+    color: black;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.modal-content button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: background-color 0.3s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.modal-content button:hover {
+    background-color: #45a049;
+}
+
+#continue-btn {
+    background-color: #2196F3;
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 30px;
+    font-size: 18px;
+}
+
+#continue-btn:hover {
+    background-color: #0b7dda;
+}
+
+/* 轉盤控制區域 */
+.wheel-controls {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+    z-index: 10;
+    transform: translateZ(0);
+    perspective: 1000px;
+}
+
+.btn-secondary {
+    background-color: #777;
+    margin-left: 10px;
+}
+
+.btn-secondary:hover {
+    background-color: #555;
 }

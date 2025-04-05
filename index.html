@@ -12,11 +12,37 @@
         <header>
             <h1><i class="fas fa-fish"></i> 小濛濛大冒險</h1>
             <div class="stats">
-                <span id="caught-fish" class="caught-counter"><i class="fas fa-trophy"></i> 已捕獲: 0/20</span>
+                <span id="caught-fish" class="caught-counter"><i class="fas fa-trophy"></i> 已捕獲: 0/80</span>
                 <button id="collection-btn"><i class="fas fa-book-open"></i> 查看圖鑑</button>
             </div>
         </header>
 
+        <!-- 環境選擇器 -->
+        <div class="environment-selector">
+            <div class="environment-title">釣魚環境：</div>
+            <div class="environment-options">
+                <button class="environment-btn active" data-environment="沿岸">
+                    <i class="fas fa-water"></i> 沿岸
+                </button>
+                <button class="environment-btn" data-environment="海水">
+                    <i class="fas fa-ship"></i> 海水
+                </button>
+                <button class="environment-btn" data-environment="淡水">
+                    <i class="fas fa-stream"></i> 淡水
+                </button>
+                <button class="environment-btn" data-environment="湖泊">
+                    <i class="fas fa-water"></i> 湖泊
+                </button>
+            </div>
+        </div>
+        
+        <!-- 時間顯示 -->
+        <div class="time-display">
+            <span class="time-icon"><i class="fas fa-clock"></i></span>
+            <span id="current-time">早上</span>
+            <span class="time-change-info">時間每 5 分鐘自動變換</span>
+        </div>
+        
         <div class="fishing-area">
             <div class="sky">
                 <div class="cloud cloud1"></div>
@@ -35,9 +61,10 @@
             <div id="float-object" class="hidden"></div>
             <div class="fish-shadow hidden"></div>
         </div>
-
+        
         <div class="controls">
             <button id="cast-btn"><i class="fas fa-arrow-down"></i> 甩竿</button>
+            <button id="pull-btn" class="hidden"><i class="fas fa-arrow-up"></i> 拉起</button>
         </div>
 
         <div class="status-message">
@@ -53,35 +80,16 @@
             
             <div class="wheel-area">
                 <div class="wheel-svg-container">
-                    <!-- 添加指針指向提示線 -->
-                    <div class="wheel-0-degree-marker"></div>
-                    
-                    <svg id="wheel" class="wheel" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
-                        <!-- 普通 - 綠色 (0-180度) 50% -->
-                        <path d="M100,100 L100,0 A100,100 0 0,1 100,200 z" fill="#4CAF50" data-rarity="1"></path>
-                        
-                        <!-- 高級 - 藍色 (180-270度) 25% -->
-                        <path d="M100,100 L100,200 A100,100 0 0,1 0,100 z" fill="#2196F3" data-rarity="2"></path>
-                        
-                        <!-- 稀有 - 紫色 (270-342度) 20% -->
-                        <path d="M100,100 L0,100 A100,100 0 0,1 30.9,11.8 z" fill="#9C27B0" data-rarity="3"></path>
-                        
-                        <!-- 傳說 - 金色 (342-360度) 5% -->
-                        <path d="M100,100 L30.9,11.8 A100,100 0 0,1 100,0 z" fill="#FFC107" data-rarity="4"></path>
-                        
-                        <!-- 中心點 -->
-                        <circle cx="100" cy="100" r="15" fill="#333"></circle>
-                        
-                        <!-- 角度參考標記 -->
-                        <line x1="100" y1="100" x2="100" y2="0" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="5,5" />
-                    </svg>
-                    
-                    <!-- 轉盤指針 -->
+                    <!-- 固定指針 - 頂部固定 -->
                     <div class="wheel-pointer"></div>
-                    <div class="pointer-base"></div>
+                    
+                    <!-- 轉盤本體 -->
+                    <div id="wheel" class="wheel">
+                        <!-- 轉盤將使用CSS設定背景色和分區 -->
+                    </div>
                 </div>
             </div>
-            
+                
             <!-- 轉盤機率說明 -->
             <div class="rarity-legend">
                 <div class="legend-title">稀有度機率:</div>
@@ -91,11 +99,11 @@
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background-color: #2196F3;"></span>
-                    <span class="legend-text">高級: 25%</span>
+                    <span class="legend-text">高級: 30%</span>
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background-color: #9C27B0;"></span>
-                    <span class="legend-text">稀有: 20%</span>
+                    <span class="legend-text">稀有: 15%</span>
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background-color: #FFC107;"></span>
@@ -105,7 +113,7 @@
             
             <!-- 轉盤控制按鈕 -->
             <div class="wheel-controls">
-                <button id="stop-wheel" class="stop-btn">拉起魚竿</button>
+                <button id="stop-wheel" class="stop-btn">點擊轉動轉盤</button>
             </div>
             
             <!-- 轉盤結果顯示 -->
@@ -114,8 +122,54 @@
                 <p>魚的稀有度: <span id="rarity-result"></span></p>
                 <button id="catch-fish" class="btn">繼續釣魚</button>
             </div>
+            
+            <!-- 轉盤說明提示 -->
+            <div class="wheel-instruction">轉盤停止後，點擊「釣魚」按鈕繼續</div>
         </div>
-
+        
+        <!-- 魚類圖鑑面板 -->
+        <div id="collection-panel" class="modal hidden">
+            <div class="modal-content">
+                <h2><i class="fas fa-book"></i> 魚類圖鑑 <span id="collection-count"></span></h2>
+                
+                <!-- 圖鑑篩選器 -->
+                <div class="collection-filters">
+                    <div class="filter-group">
+                        <label>環境：</label>
+                        <select id="filter-environment">
+                            <option value="all">全部</option>
+                            <option value="沿岸">沿岸</option>
+                            <option value="海水">海水</option>
+                            <option value="淡水">淡水</option>
+                            <option value="湖泊">湖泊</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>時間：</label>
+                        <select id="filter-time">
+                            <option value="all">全部</option>
+                            <option value="早上">早上</option>
+                            <option value="中午">中午</option>
+                            <option value="晚上">晚上</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>稀有度：</label>
+                        <select id="filter-rarity">
+                            <option value="all">全部</option>
+                            <option value="1">普通</option>
+                            <option value="2">高級</option>
+                            <option value="3">稀有</option>
+                            <option value="4">傳說</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="fish-collection" class="fish-grid"></div>
+                <button id="close-collection-btn">關閉</button>
+            </div>
+        </div>
+        
         <!-- 捕獲魚類面板 -->
         <div id="fish-caught-panel" class="modal hidden">
             <div class="modal-content">
@@ -125,19 +179,11 @@
                     <div>
                         <h3 id="caught-fish-name"></h3>
                         <p id="caught-fish-rarity"></p>
+                        <p id="caught-fish-environment-time"></p>
                         <p id="caught-fish-desc"></p>
                     </div>
                 </div>
                 <button id="continue-btn">繼續釣魚</button>
-            </div>
-        </div>
-
-        <!-- 魚類圖鑑面板 -->
-        <div id="collection-panel" class="modal hidden">
-            <div class="modal-content">
-                <h2><i class="fas fa-book"></i> 魚類圖鑑 <span id="collection-count"></span></h2>
-                <div id="fish-collection" class="fish-grid"></div>
-                <button id="close-collection-btn">關閉</button>
             </div>
         </div>
     </div>
@@ -145,8 +191,8 @@
     <div class="restart-button-container">
         <button id="restart-adventure-btn"><i class="fas fa-redo"></i> 重新開始冒險</button>
     </div>
-
+    
     <script src="fish-data.js"></script>
-    <script src="game.js"></script>
+    <script src="game-new.js"></script>
 </body>
 </html>

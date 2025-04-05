@@ -5,7 +5,9 @@ const gameState = {
     currentFish: null,
     canCatch: false,
     selectedRarity: null, // 轉盤選擇的稀有度
-    wheelSpinning: false
+    wheelSpinning: false,
+    currentEnvironment: '沿岸', // 預設環境
+    currentTime: '早上' // 預設時間
 };
 
 // DOM元素
@@ -20,6 +22,7 @@ const elements = {
     caughtFishImg: document.getElementById('caught-fish-img'),
     caughtFishName: document.getElementById('caught-fish-name'),
     caughtFishRarity: document.getElementById('caught-fish-rarity'),
+    caughtFishEnvironmentTime: document.getElementById('caught-fish-environment-time'),
     caughtFishDesc: document.getElementById('caught-fish-desc'),
     continueBtn: document.getElementById('continue-btn'),
     collectionBtn: document.getElementById('collection-btn'),
@@ -37,7 +40,15 @@ const elements = {
     rarityResult: document.getElementById('rarity-result'),
     catchFishBtn: document.getElementById('catch-fish'),
     // 重新開始冒險按鈕
-    restartAdventureBtn: document.getElementById('restart-adventure-btn')
+    restartAdventureBtn: document.getElementById('restart-adventure-btn'),
+    // 環境與時間元素
+    fishingArea: document.querySelector('.fishing-area'),
+    environmentButtons: document.querySelectorAll('.environment-btn'),
+    currentTimeDisplay: document.getElementById('current-time'),
+    // 圖鑑篩選器
+    filterEnvironment: document.getElementById('filter-environment'),
+    filterTime: document.getElementById('filter-time'),
+    filterRarity: document.getElementById('filter-rarity')
 };
 
 // 系統參數
@@ -47,7 +58,8 @@ const params = {
     maxWaitTime: 15000,
     catchWindow: 1500,
     wheelMinRotations: 5, // 轉盤最少旋轉圈數
-    wheelMaxRotations: 10 // 轉盤最多旋轉圈數
+    wheelMaxRotations: 10, // 轉盤最多旋轉圈數
+    timeChangeInterval: 5 * 60 * 1000 // 5分鐘切換一次時間
 };
 
 // 轉盤相關變數
@@ -57,6 +69,7 @@ let currentRarity = null;
 let isPointerBaseAdded = false;
 let currentRotation = 0; // 初始化轉盤角度
 let slowDown = false; // 初始化減速標記
+let timeChangeTimer; // 時間變換計時器
 
 // 遊戲初始化
 function initGame() {
@@ -77,8 +90,40 @@ function initGame() {
         elements.collectionPanel.classList.add('hidden');
     });
     
+    // 綁定轉盤停止按鈕
+    if (elements.stopWheelBtn) {
+        console.log('綁定轉盤停止按鈕');
+        // 移除可能存在的舊事件監聽器
+        elements.stopWheelBtn.removeEventListener('click', stopWheelHandler);
+        // 添加新的事件監聽器
+        elements.stopWheelBtn.addEventListener('click', stopWheelHandler);
+    }
+    
+    // 綁定繼續釣魚按鈕事件 - 修復轉盤結果後的繼續按鈕
+    if (elements.catchFishBtn) {
+        console.log('綁定繼續釣魚按鈕');
+        elements.catchFishBtn.addEventListener('click', () => {
+            console.log('點擊繼續釣魚按鈕');
+            elements.wheelContainer.classList.add('hidden');
+            startFishing(gameState.selectedRarity);
+        });
+    }
+    
     // 綁定重新開始冒險按鈕事件
     elements.restartAdventureBtn.addEventListener('click', restartAdventure);
+    
+    // 綁定環境選擇按鈕事件
+    elements.environmentButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const environment = button.getAttribute('data-environment');
+            changeEnvironment(environment);
+        });
+    });
+    
+    // 綁定圖鑑篩選器事件
+    elements.filterEnvironment.addEventListener('change', filterCollection);
+    elements.filterTime.addEventListener('change', filterCollection);
+    elements.filterRarity.addEventListener('change', filterCollection);
     
     // 生成釣魚鉤和浮標
     positionFishingElements();
@@ -98,14 +143,6 @@ function initGame() {
             document.querySelector('.wheel-area').appendChild(pointerBase);
         }
         
-        // 檢查是否已經存在轉盤說明
-        if (!document.querySelector('.wheel-instruction')) {
-            const wheelInstruction = document.createElement('div');
-            wheelInstruction.className = 'wheel-instruction';
-            wheelInstruction.textContent = '點擊拉起魚竿按鈕決定魚的稀有度';
-            document.querySelector('.wheel-container').appendChild(wheelInstruction);
-        }
-        
         isPointerBaseAdded = true;
     }
     
@@ -119,8 +156,168 @@ function initGame() {
     const pointer = document.querySelector('.wheel-pointer');
     pointer.classList.remove('active');
     pointer.style.backgroundColor = '#f44336';
+    
+    // 初始化時間與環境
+    initTimeCycle();
+    updateEnvironmentVisuals();
+    updateTimeVisuals();
 
     updateStatusMessage('準備開始釣魚吧！');
+}
+
+// 停止轉盤處理函數
+function stopWheelHandler() {
+    console.log('點擊停止轉盤按鈕');
+    if (wheelSpinning) {
+        slowDown = true;
+    }
+}
+
+// 初始化時間循環系統
+function initTimeCycle() {
+    // 清除之前的計時器
+    if (timeChangeTimer) {
+        clearInterval(timeChangeTimer);
+    }
+    
+    // 隨機設定初始時間
+    const times = ['早上', '中午', '晚上'];
+    gameState.currentTime = times[Math.floor(Math.random() * times.length)];
+    updateTimeDisplay();
+    updateTimeVisuals();
+    
+    // 設定時間變化計時器
+    timeChangeTimer = setInterval(() => {
+        // 按順序循環時間
+        const currentIndex = times.indexOf(gameState.currentTime);
+        const nextIndex = (currentIndex + 1) % times.length;
+        gameState.currentTime = times[nextIndex];
+        
+        // 更新UI
+        updateTimeDisplay();
+        updateTimeVisuals();
+        
+        // 顯示通知
+        showTimeChangeNotification();
+    }, params.timeChangeInterval);
+
+    // 測試模式：短間隔時間變化（開發時使用）
+    /*
+    setTimeout(() => {
+        gameState.currentTime = times[(times.indexOf(gameState.currentTime) + 1) % times.length];
+        updateTimeDisplay();
+        updateTimeVisuals();
+        showTimeChangeNotification();
+    }, 10000);
+    */
+}
+
+// 更新時間顯示
+function updateTimeDisplay() {
+    elements.currentTimeDisplay.textContent = gameState.currentTime;
+    
+    // 移除舊的時間圖標類
+    elements.currentTimeDisplay.classList.remove('time-morning', 'time-noon', 'time-evening');
+    
+    // 添加新的時間圖標類
+    switch (gameState.currentTime) {
+        case '早上':
+            elements.currentTimeDisplay.classList.add('time-morning');
+            document.querySelector('.time-icon i').className = 'fas fa-sun';
+            break;
+        case '中午':
+            elements.currentTimeDisplay.classList.add('time-noon');
+            document.querySelector('.time-icon i').className = 'fas fa-sun';
+            break;
+        case '晚上':
+            elements.currentTimeDisplay.classList.add('time-evening');
+            document.querySelector('.time-icon i').className = 'fas fa-moon';
+            break;
+    }
+}
+
+// 顯示時間變化通知
+function showTimeChangeNotification() {
+    // 創建通知元素
+    const notification = document.createElement('div');
+    notification.classList.add('time-change-notification');
+    notification.textContent = `時間變成 ${gameState.currentTime} 了！`;
+    document.body.appendChild(notification);
+    
+    // 3秒後移除通知
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                document.body.removeChild(notification);
+            }
+        }, 1000);
+    }, 3000);
+}
+
+// 更改釣魚環境
+function changeEnvironment(environment) {
+    // 更新當前環境
+    gameState.currentEnvironment = environment;
+    
+    // 更新UI
+    elements.environmentButtons.forEach(button => {
+        if (button.getAttribute('data-environment') === environment) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+    
+    // 更新視覺效果
+    updateEnvironmentVisuals();
+    
+    // 重置釣魚狀態
+    resetFishing();
+    
+    // 顯示環境變更提示
+    updateStatusMessage(`已切換到 ${environment} 環境！`);
+}
+
+// 更新環境視覺效果
+function updateEnvironmentVisuals() {
+    // 移除所有環境類別
+    elements.fishingArea.classList.remove('coastal', 'sea', 'freshwater', 'lake');
+    
+    // 添加對應環境類別
+    switch (gameState.currentEnvironment) {
+        case '沿岸':
+            elements.fishingArea.classList.add('coastal');
+            break;
+        case '海水':
+            elements.fishingArea.classList.add('sea');
+            break;
+        case '淡水':
+            elements.fishingArea.classList.add('freshwater');
+            break;
+        case '湖泊':
+            elements.fishingArea.classList.add('lake');
+            break;
+    }
+}
+
+// 更新時間視覺效果
+function updateTimeVisuals() {
+    // 移除所有時間類別
+    elements.fishingArea.classList.remove('morning', 'noon', 'evening');
+    
+    // 添加對應時間類別
+    switch (gameState.currentTime) {
+        case '早上':
+            elements.fishingArea.classList.add('morning');
+            break;
+        case '中午':
+            elements.fishingArea.classList.add('noon');
+            break;
+        case '晚上':
+            elements.fishingArea.classList.add('evening');
+            break;
+    }
 }
 
 // 定位釣魚元素
@@ -174,658 +371,756 @@ function saveCaughtFish() {
 
 // 更新捕獲數量顯示
 function updateCaughtFishCount() {
-    elements.caughtFishCount.textContent = `已捕獲: ${gameState.caughtFish.length}/20`;
-    elements.collectionCount.textContent = `(${gameState.caughtFish.length}/20)`;
+    elements.caughtFishCount.textContent = `已捕獲: ${gameState.caughtFish.length}/80`;
+    elements.collectionCount.textContent = `(${gameState.caughtFish.length}/80)`;
 }
 
 // 甩竿
 function castLine() {
-    if (gameState.status !== 'ready') return;
+    console.log('甩竿');
     
-    gameState.status = 'casting';
-    updateStatus('正在甩竿...');
-    
-    // 禁用甩竿按鈕
-    elements.castBtn.disabled = true;
-    
-    // 顯示釣魚線
-    elements.fishHook.classList.remove('hidden');
-    
-    // 延遲後直接進入轉盤環節，跳過等待和咬鉤階段
-    setTimeout(() => {
-        elements.floatObject.classList.remove('hidden');
-        
-        gameState.status = 'spinning';
-        updateStatus('開始釣魚...');
-        
-        // 短暫延遲後顯示轉盤
-        setTimeout(() => {
-            // 隱藏釣魚相關元素
-            elements.floatObject.classList.add('hidden');
-            elements.fishHook.classList.add('hidden');
-            
-            // 顯示轉盤
-            showWheel();
-        }, 1000);
-    }, params.castingTime);
-}
-
-// 顯示隨機魚影
-function showRandomFishShadow() {
-    if (gameState.status !== 'waiting') return;
-    
-    // 有50%機率顯示魚影
-    if (Math.random() > 0.5) {
-        elements.fishShadow.classList.remove('hidden');
-        
-        // 隨機位置
-        const fishingArea = document.querySelector('.fishing-area');
-        const areaWidth = fishingArea.offsetWidth;
-        elements.fishShadow.style.left = `${Math.random() * (areaWidth - 100) + 50}px`;
-        
-        // 2-5秒後隱藏
-        setTimeout(() => {
-            if (elements.fishShadow.classList.contains('hidden') === false) {
-                elements.fishShadow.classList.add('hidden');
-                
-                // 隨機等待後再次顯示魚影
-                if (gameState.status === 'waiting') {
-                    setTimeout(showRandomFishShadow, Math.random() * 3000 + 1000);
-                }
-            }
-        }, Math.random() * 3000 + 2000);
-    } else {
-        // 如果沒顯示魚影，等待一段時間後再嘗試
-        if (gameState.status === 'waiting') {
-            setTimeout(showRandomFishShadow, Math.random() * 2000 + 1000);
-        }
-    }
-}
-
-// 魚咬鉤
-function fishBite() {
-    // 進入咬鉤狀態
-    gameState.status = 'bite';
-    updateStatus('有魚上鉤了！快點點擊「拉起」！', true);
-    
-    // 啟用拉起按鈕並添加動畫
-    elements.pullBtn.disabled = false;
-    elements.pullBtn.classList.add('active');
-    
-    // 浮標動畫
-    elements.floatObject.classList.add('bite');
-    
-    // 顯示水花效果
-    elements.splash.classList.remove('hidden');
-    setTimeout(() => {
-        elements.splash.classList.add('hidden');
-    }, 2000); // 延長水花效果時間
-    
-    // 顯示魚影在釣鉤附近
-    elements.fishShadow.classList.remove('hidden');
-    elements.fishShadow.style.left = `${parseInt(elements.floatObject.style.left) - 20}px`;
-    
-    // 設置捕獲窗口
-    gameState.canCatch = true;
-    setTimeout(() => {
-        if (gameState.status === 'bite') {
-            gameState.canCatch = false;
-            gameState.status = 'failed';
-            updateStatus('魚逃走了！');
-            elements.pullBtn.disabled = true;
-            elements.pullBtn.classList.remove('active');
-            elements.floatObject.classList.remove('bite');
-            elements.fishShadow.classList.add('hidden');
-            
-            // 延遲後重置
-            setTimeout(resetFishing, 2000);
-        }
-    }, params.catchWindow);
-}
-
-// 拉起魚竿(原停止轉盤)
-function stopWheel() {
-    if (!wheelSpinning) return;
-    
-    // 停用按鈕並開始減速
-    elements.stopWheelBtn.disabled = true;
-    slowDown = true;
-    
-    // 更新狀態消息
-    updateStatusMessage('魚竿正在拉起...');
-}
-
-// 顯示轉盤
-function showWheel() {
-    // 確保頁面滾動正常
-    document.body.style.overflow = 'hidden';
-    
-    // 檢查SVG扇形定義
-    const paths = document.querySelectorAll('#wheel path');
-    if (paths.length === 4) {
-        console.log("檢查SVG扇形區域定義:");
-        paths.forEach((path, index) => {
-            const rarity = path.getAttribute('data-rarity');
-            const fill = path.getAttribute('fill');
-            console.log(`扇形${index + 1}: 稀有度=${rarity}, 顏色=${fill}, 路徑=${path.getAttribute('d')}`);
-        });
+    // 只有在ready狀態才能甩竿
+    if (gameState.status !== 'ready') {
+        console.log('不在ready狀態，無法甩竿，當前狀態:', gameState.status);
+        // 如果卡在其他狀態，嘗試重置
+        resetFishing();
+        return;
     }
     
-    // 重置轉盤角度為0度，確保每次開始時轉盤位置一致
-    elements.wheel.style.transition = 'none';
-    elements.wheel.style.transform = 'rotate(0deg)';
+    // 切換到轉盤狀態
+    gameState.status = 'spinning';
+    console.log('切換到轉盤狀態');
     
     // 顯示轉盤容器
-    elements.wheelContainer.classList.remove('hidden');
+    if (elements.wheelContainer) {
+        elements.wheelContainer.classList.remove('hidden');
+        elements.wheelContainer.style.display = 'flex';
+        console.log('顯示轉盤容器');
+    }
     
-    // 初始化轉盤狀態
-    elements.wheelResult.style.display = 'none';
-    elements.stopWheelBtn.disabled = false;
+    // 啟動轉盤
+    spinWheel();
     
-    // 重置轉盤變數
-    currentRotation = 0;
-    slowDown = false;
-    
-    // 重置指針樣式
-    const pointer = document.querySelector('.wheel-pointer');
-    pointer.style.transform = 'translateX(-50%)';
-    pointer.style.backgroundColor = '#f44336';
-    
-    // 開始轉盤旋轉動畫
-    startWheel();
+    // 更新狀態信息
+    updateStatusMessage('釣魚輪盤轉動中...請點擊停止按鈕！');
 }
 
-// 開始旋轉轉盤
-function startWheel() {
+// 轉動轉盤
+function spinWheel() {
+    // 如果轉盤正在旋轉，不重複啟動
     if (wheelSpinning) return;
     
+    console.log('開始轉動轉盤');
+    
+    // 更新轉盤狀態
     wheelSpinning = true;
-    elements.stopWheelBtn.disabled = false;
+    slowDown = false;
+    gameState.wheelSpinning = true;
     
-    updateStatusMessage('轉盤正在旋轉，點擊拉起魚竿按鈕!');
+    // 啟用停止按鈕
+    elements.castBtn.disabled = false;
+    elements.castBtn.textContent = '點擊停止';
+    elements.castBtn.removeEventListener('click', castLine);
+    elements.castBtn.addEventListener('click', () => {
+        console.log('點擊釣魚按鈕停止轉盤');
+        slowDown = true;
+    });
     
-    // 啟動指針動畫
-    const pointer = document.querySelector('.wheel-pointer');
-    pointer.classList.add('active');
+    // 設定轉盤旋轉動畫
+    const minDegPerFrame = 5; // 最小旋轉速度
+    const maxDegPerFrame = 15; // 最大旋轉速度
+    const slowDownFactor = 0.95; // 減速因子
+    const minRotationSpeed = 0.5; // 最低速度閾值
     
-    // 隱藏結果
-    elements.wheelResult.style.display = 'none';
+    let rotationSpeed = maxDegPerFrame;
     
-    // 初始旋轉速度 (降低10%初始速度)
-    let spinSpeed = 13.5; // 從15降低到13.5
-    let lastTimestamp = null;
+    // 隨機魚兒
+    const willGetFish = Math.random() > 0.2; // 80%的機會釣到魚
     
-    // 開始轉盤旋轉的函數
-    function spinWheelAnimation(timestamp) {
-        if (!lastTimestamp) lastTimestamp = timestamp;
-        const deltaTime = timestamp - lastTimestamp;
-        lastTimestamp = timestamp;
-        
-        // 確保每幀的旋轉量合理
-        const frameRotation = (spinSpeed * deltaTime) / 16.67; // 基於60幀計算
-        
-        currentRotation += frameRotation;
-        
-        // 不需要限制角度範圍，讓轉盤可以無限旋轉
+    // 重置轉盤角度，確保從0開始
+    currentRotation = 0;
+    elements.wheel.style.transform = `rotate(${currentRotation}deg)`;
+    
+    function rotate() {
+        // 更新轉盤角度 - 順時針旋轉
+        currentRotation += rotationSpeed;
         elements.wheel.style.transform = `rotate(${currentRotation}deg)`;
         
-        // 如果需要減速
+        // 處理減速
         if (slowDown) {
-            // 更平滑的減速
-            spinSpeed *= 0.98;
+            rotationSpeed *= slowDownFactor;
             
-            // 當速度足夠慢時停止
-            if (spinSpeed < 0.2) {
-                wheelSpinning = false;
-                slowDown = false;
-                
-                // 調整最終角度到最接近的區段中心
-                finalizeWheelPosition();
-                
+            // 當速度低於閾值，停止旋轉
+            if (rotationSpeed < minRotationSpeed) {
+                finishWheelSpin(willGetFish);
                 return;
             }
         }
         
-        requestAnimationFrame(spinWheelAnimation);
+        // 繼續旋轉
+        requestAnimationFrame(rotate);
     }
     
-    // 開始旋轉動畫
-    requestAnimationFrame(spinWheelAnimation);
+    // 開始旋轉
+    rotate();
+    
+    // 移除自動停止計時器 - 確保只有玩家手動點擊才能停止
 }
 
-// 調整轉盤最終位置並顯示結果
-function finalizeWheelPosition() {
-    // 計算轉盤實際角度 (轉盤可能已旋轉多圈)
-    let actualRotation = currentRotation % 360;
+// 完成轉盤旋轉
+function finishWheelSpin(willGetFish) {
+    console.log('完成轉盤旋轉，將獲得魚:', willGetFish);
     
-    // 確保角度為正數
-    if (actualRotation < 0) {
-        actualRotation += 360;
+    // 確保轉盤已經停止旋轉
+    if(!slowDown) {
+        console.log('轉盤尚未被手動停止，不執行結束操作');
+        return;
     }
     
-    // 立即更新轉盤樣式，停止所有轉換
-    elements.wheel.style.transition = 'none';
-    elements.wheel.style.transform = `rotate(${actualRotation}deg)`;
+    wheelSpinning = false;
+    gameState.wheelSpinning = false;
     
-    // 為除錯添加詳細日誌
-    console.log("===== 轉盤停止分析 =====");
-    console.log("原始轉盤旋轉: ", currentRotation.toFixed(2), "度");
-    console.log("調整後轉盤角度: ", actualRotation.toFixed(2), "度");
-    
-    // 添加可視化debug標記，顯示實際停止位置
-    const debugMarker = document.createElement('div');
-    debugMarker.style.position = 'absolute';
-    debugMarker.style.top = '0';
-    debugMarker.style.left = '50%';
-    debugMarker.style.width = '2px';
-    debugMarker.style.height = '20px';
-    debugMarker.style.backgroundColor = 'yellow';
-    debugMarker.style.zIndex = '100';
-    debugMarker.style.transform = 'translateX(-50%)';
-    document.querySelector('.wheel-svg-container').appendChild(debugMarker);
-    
-    // 確保轉盤已完全停止
-    requestAnimationFrame(() => {
-        // 根據轉盤角度判定稀有度
-        const rarity = determineRarityFromWheelPosition(actualRotation);
-        currentRarity = rarity;
-        
-        // 詳細記錄判定結果
-        console.log("最終判定: 轉盤角度", actualRotation, "度");
-        console.log("對應稀有度:", getRarityText(rarity), "(", getRarityColor(rarity), ")");
-        
-        // 更新指針顏色以反映判定結果
-        updatePointerColor(rarity);
-        
-        // 顯示結果
-        showWheelResult(rarity);
-        
-        // 5秒後移除debug標記
-        setTimeout(() => {
-            if (debugMarker.parentNode) {
-                debugMarker.parentNode.removeChild(debugMarker);
-            }
-        }, 5000);
-        
-        console.log("===== 轉盤分析結束 =====");
+    // 移除釣魚按鈕的停止轉盤事件
+    elements.castBtn.removeEventListener('click', () => {
+        slowDown = true;
     });
-}
-
-// 根據轉盤位置判定稀有度（指針固定在0度位置）
-function determineRarityFromWheelPosition(wheelPosition) {
-    // 確保角度在0-360度範圍內
-    let adjustedAngle = wheelPosition % 360;
-    if (adjustedAngle < 0) {
-        adjustedAngle += 360;
-    }
     
-    // 計算指針相對於轉盤的位置
-    // 當轉盤順時針旋轉到角度A時，指針實際指向的是(360-A)度的位置
-    let pointerPosition = (360 - adjustedAngle) % 360;
+    // 標準化角度到0-360度之間
+    const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+    console.log('原始轉盤角度:', currentRotation, '標準化角度:', normalizedRotation);
     
-    // 為除錯添加詳細信息
-    console.log("轉盤原始角度:", wheelPosition);
-    console.log("轉盤調整後角度:", adjustedAngle);
-    console.log("指針計算後位置:", pointerPosition);
+    // 更新後的角度分配 (以順時針方向計算):
+    // 0-180度：普通 (綠色) - 50%
+    // 180-288度：高級 (藍色) - 30%
+    // 288-342度：稀有 (紫色) - 15%
+    // 342-360度：傳說 (金色) - 5%
+    let rarityValue;
+    let rarityColor;
     
-    // 驗證轉盤定義的區域和判定邏輯是否對齊
-    console.log("轉盤區域定義:");
-    console.log("- 綠色(普通): 0-180度, 實際SVG範圍: 0-180度");
-    console.log("- 藍色(高級): 180-270度, 實際SVG範圍: 180-270度");
-    console.log("- 紫色(稀有): 270-342度, 實際SVG範圍: 270-342度");
-    console.log("- 金色(傳說): 342-360度, 實際SVG範圍: 342-360度");
-    
-    // 根據指針角度判定稀有度
-    let rarity;
-    if (pointerPosition >= 0 && pointerPosition < 180) {
-        // 指針指向綠色區域 (0-180度)
-        rarity = 1; // 普通
-        console.log("指針指向普通(綠色)區域：0-180度");
-    } else if (pointerPosition >= 180 && pointerPosition < 270) {
-        // 指針指向藍色區域 (180-270度)
-        rarity = 2; // 高級
-        console.log("指針指向高級(藍色)區域：180-270度");
-    } else if (pointerPosition >= 270 && pointerPosition < 342) {
-        // 指針指向紫色區域 (270-342度)
-        rarity = 3; // 稀有
-        console.log("指針指向稀有(紫色)區域：270-342度");
+    if (normalizedRotation >= 0 && normalizedRotation < 180) {
+        rarityValue = 1; // 普通 - 綠色區域 (50%)
+        rarityColor = "#4CAF50";
+    } else if (normalizedRotation >= 180 && normalizedRotation < 288) {
+        rarityValue = 2; // 高級 - 藍色區域 (30%)
+        rarityColor = "#2196F3";
+    } else if (normalizedRotation >= 288 && normalizedRotation < 342) {
+        rarityValue = 3; // 稀有 - 紫色區域 (15%)
+        rarityColor = "#9C27B0";
     } else {
-        // 指針指向金色區域 (342-360度)
-        rarity = 4; // 傳說
-        console.log("指針指向傳說(金色)區域：342-360度");
+        rarityValue = 4; // 傳說 - 金色區域 (5%)
+        rarityColor = "#FFC107";
     }
     
-    // 檢查最終結果
-    console.log(`最終判定結果: ${getRarityText(rarity)}魚 (${getRarityColor(rarity)})`);
-    return rarity;
+    console.log('轉盤最終結果計算:', {
+        '轉盤角度': normalizedRotation,
+        '對應稀有度': rarityValue,
+        '稀有度文字': ['', '普通', '高級', '稀有', '傳說'][rarityValue],
+        '對應顏色': rarityColor,
+        '角度區域': (normalizedRotation >= 0 && normalizedRotation < 180) ? "0-180度 (普通)" :
+                  (normalizedRotation >= 180 && normalizedRotation < 288) ? "180-288度 (高級)" :
+                  (normalizedRotation >= 288 && normalizedRotation < 342) ? "288-342度 (稀有)" :
+                  "342-360度 (傳說)"
+    });
+    
+    // 儲存選中的稀有度以供後續使用
+    gameState.selectedRarity = rarityValue;
+    
+    // 轉換稀有度為文字
+    const rarityText = ['', '普通', '高級', '稀有', '傳說'];
+    
+    // 設置稀有度對應的樣式
+    elements.rarityResult.textContent = rarityText[rarityValue];
+    elements.rarityResult.className = ''; // 清除之前的類
+    elements.rarityResult.classList.add(`rarity-${rarityValue}`); // 添加對應稀有度的樣式類
+    
+    // 顯示結果區域
+    elements.wheelResult.style.display = 'block';
+    
+    // 直接釣魚按鈕
+    if (willGetFish) {
+        // 移除舊的按鈕事件，創建新按鈕
+        if (elements.catchFishBtn) {
+            const oldCatchBtn = elements.catchFishBtn;
+            const newCatchBtn = oldCatchBtn.cloneNode(true);
+            oldCatchBtn.parentNode.replaceChild(newCatchBtn, oldCatchBtn);
+            elements.catchFishBtn = newCatchBtn;
+            
+            // 添加新事件
+            elements.catchFishBtn.addEventListener('click', function() {
+                console.log('點擊直接釣魚按鈕');
+                // 隱藏轉盤容器
+                if (elements.wheelContainer) {
+                    elements.wheelContainer.classList.add('hidden');
+                    elements.wheelContainer.style.display = 'none';
+                }
+                // 開始直接釣魚過程
+                directFishing(rarityValue);
+            });
+        }
+        
+        // 更新主釣魚按鈕同樣行為
+        if (elements.castBtn) {
+            elements.castBtn.textContent = '釣魚！';
+            
+            // 移除舊的按鈕事件，創建新按鈕
+            const oldElement = elements.castBtn;
+            const newElement = oldElement.cloneNode(true);
+            oldElement.parentNode.replaceChild(newElement, oldElement);
+            elements.castBtn = newElement;
+            
+            // 添加新事件
+            elements.castBtn.addEventListener('click', function() {
+                console.log('點擊主釣魚按鈕');
+                // 隱藏轉盤容器
+                if (elements.wheelContainer) {
+                    elements.wheelContainer.classList.add('hidden');
+                    elements.wheelContainer.style.display = 'none';
+                }
+                // 開始直接釣魚過程
+                directFishing(rarityValue);
+            });
+        }
+    } else {
+        // 釣魚失敗，重新開始按鈕
+        if (elements.castBtn) {
+            elements.castBtn.textContent = '重新開始';
+            
+            // 移除舊的按鈕事件，創建新按鈕
+            const oldElement = elements.castBtn;
+            const newElement = oldElement.cloneNode(true);
+            oldElement.parentNode.replaceChild(newElement, oldElement);
+            elements.castBtn = newElement;
+            
+            // 添加新事件
+            elements.castBtn.addEventListener('click', function() {
+                if (elements.wheelContainer) {
+                    elements.wheelContainer.classList.add('hidden');
+                    elements.wheelContainer.style.display = 'none';
+                }
+                resetFishing();
+            });
+        }
+        updateStatusMessage('釣魚失敗，沒有魚上鉤！');
+    }
 }
 
-// 根據稀有度獲取顏色名稱（用於調試）
-function getRarityColor(rarity) {
-    switch(rarity) {
-        case 1: return "綠色 (普通)";
-        case 2: return "藍色 (高級)";
-        case 3: return "紫色 (稀有)";
-        case 4: return "金色 (傳說)";
-        default: return "未知";
-    }
-}
-
-// 根據稀有度更新指針顏色
-function updatePointerColor(rarity) {
-    const pointer = document.querySelector('.wheel-pointer');
-    pointer.classList.remove('active');
+// 直接釣魚過程（簡化版）
+function directFishing(rarityValue) {
+    console.log('開始直接釣魚過程，稀有度:', rarityValue);
     
-    // 記錄原始顏色
-    const originalColor = pointer.style.backgroundColor;
-    
-    // 根據稀有度設置不同顏色，確保與轉盤區域顏色完全一致
-    let newColor = '';
-    switch(rarity) {
-        case 1:
-            newColor = '#4CAF50'; // 綠色 - 普通
-            break;
-        case 2:
-            newColor = '#2196F3'; // 藍色 - 高級
-            break;
-        case 3:
-            newColor = '#9C27B0'; // 紫色 - 稀有
-            break;
-        case 4:
-            newColor = '#FFC107'; // 金色 - 傳說
-            break;
-        default:
-            newColor = '#333'; // 預設黑色
+    // 確保隱藏轉盤容器
+    if (elements.wheelContainer) {
+        elements.wheelContainer.classList.add('hidden');
+        elements.wheelContainer.style.display = 'none';
     }
     
-    // 設置新顏色
-    pointer.style.backgroundColor = newColor;
+    // 設置遊戲狀態為施放釣竿
+    gameState.status = 'casting';
+    updateStatusMessage('拋出釣魚線...');
     
-    // 顯示顏色變化的除錯信息
-    console.log(`指針顏色已從 ${originalColor} 更新為 ${newColor} (稀有度: ${rarity})`);
-    console.log(`稀有度對應: 1=綠色(普通), 2=藍色(高級), 3=紫色(稀有), 4=金色(傳說)`);
+    // 顯示釣魚線和浮標
+    elements.fishHook.classList.remove('hidden');
+    elements.floatObject.classList.remove('hidden');
     
-    // 使指針有輕微的放大效果，但不會導致畫面變形
-    pointer.style.transform = 'translateX(-50%) scale(1.1)';
+    // 播放水花動畫
+    elements.splash.classList.remove('hidden');
     setTimeout(() => {
-        pointer.style.transform = 'translateX(-50%)';
-    }, 300);
+        elements.splash.classList.add('hidden');
+    }, 500);
+    
+    // 簡化流程，直接選擇魚並完成釣魚
+    setTimeout(() => {
+        const fish = selectRandomFish(rarityValue);
+        if (fish) {
+            // 保存選中的魚
+            gameState.currentFish = fish;
+            // 直接進入釣魚成功
+            gameState.status = 'reeling';
+            updateStatusMessage('拉起釣魚線...');
+            
+            // 短暫延遲後顯示釣到魚
+            setTimeout(() => {
+                fishCaught();
+            }, 1000);
+        } else {
+            // 沒有合適的魚，釣魚失敗
+            failFishing('沒有發現匹配稀有度的魚...');
+        }
+    }, params.castingTime);
 }
 
-// 顯示轉盤結果
-function showWheelResult(rarity) {
-    // 移除所有稀有度類別
-    elements.rarityResult.classList.remove('rarity-1', 'rarity-2', 'rarity-3', 'rarity-4');
+// 開始釣魚過程
+function startFishing(rarityValue) {
+    // 使用統一的簡化流程
+    directFishing(rarityValue);
+}
+
+// 選擇一條適合稀有度、環境和時間的隨機魚
+function selectRandomFish(rarityValue) {
+    // 篩選符合條件的魚
+    const eligibleFish = fishDatabase.filter(fish => 
+        fish.rarity === rarityValue && 
+        fish.environment === gameState.currentEnvironment &&
+        fish.time === gameState.currentTime
+    );
     
-    // 設置稀有度文字和樣式
-    let rarityText = '';
-    switch(rarity) {
-        case 1:
-            rarityText = '普通';
-            elements.rarityResult.classList.add('rarity-1');
-            break;
-        case 2:
-            rarityText = '高級';
-            elements.rarityResult.classList.add('rarity-2');
-            break;
-        case 3:
-            rarityText = '稀有';
-            elements.rarityResult.classList.add('rarity-3');
-            break;
-        case 4:
-            rarityText = '傳說';
-            elements.rarityResult.classList.add('rarity-4');
-            break;
+    if (eligibleFish.length === 0) {
+        console.log('找不到符合條件的魚', {
+            稀有度: rarityValue,
+            環境: gameState.currentEnvironment,
+            時間: gameState.currentTime
+        });
+        
+        // 作為備選，嘗試只根據稀有度匹配
+        const backupFish = fishDatabase.filter(fish => fish.rarity === rarityValue);
+        if (backupFish.length > 0) {
+            const randomIndex = Math.floor(Math.random() * backupFish.length);
+            console.log('使用備選魚:', backupFish[randomIndex].name);
+            return backupFish[randomIndex];
+        }
+        
+        return null;
     }
     
-    // 更新結果文字
-    elements.rarityResult.textContent = rarityText;
+    // 計算總概率
+    const totalProbability = eligibleFish.reduce((sum, fish) => sum + fish.probability, 0);
     
-    // 通過直接設置樣式屬性來避免變形
-    const resultElement = elements.wheelResult;
+    // 隨機選擇（根據概率權重）
+    let randomValue = Math.random() * totalProbability;
+    let cumulativeProbability = 0;
     
-    // 清除任何可能影響顯示的過渡和變換
-    resultElement.style.cssText = '';
-    resultElement.style.display = 'block';
-    resultElement.style.opacity = '1';
-    resultElement.style.transform = 'none';
-    resultElement.style.transition = 'none';
+    for (const fish of eligibleFish) {
+        cumulativeProbability += fish.probability;
+        if (randomValue <= cumulativeProbability) {
+            console.log('選擇到的魚:', fish.name);
+            return fish;
+        }
+    }
     
-    // 強制瀏覽器重繪
-    resultElement.offsetHeight;
-    
-    // 更新狀態消息
-    updateStatusMessage(`恭喜！你釣到了一個${rarityText}魚！`);
-    
-    // 啟用繼續釣魚按鈕
-    elements.catchFishBtn.disabled = false;
+    // 保險起見，返回列表中的第一條魚
+    console.log('預設選擇第一條魚:', eligibleFish[0].name);
+    return eligibleFish[0];
 }
 
-// 更新狀態消息
-function updateStatusMessage(message) {
-    const statusElement = document.getElementById('game-status');
-    statusElement.textContent = message;
+// 顯示魚兒上鉤
+function showFishBite() {
+    console.log('魚兒上鉤，當前狀態:', gameState.status);
     
-    // 突出顯示消息
-    statusElement.style.animation = 'none';
+    if (gameState.status !== 'waiting') {
+        console.log('狀態不正確，無法顯示魚上鉤');
+        return;
+    }
+    
+    // 切換到魚上鉤狀態
+    gameState.status = 'bite';
+    gameState.canCatch = true;
+    
+    // 播放浮標上鉤動畫
+    if (elements.floatObject) {
+        elements.floatObject.classList.add('bobbing');
+    }
+    
+    // 顯示魚影
+    if (elements.fishShadow) {
+        elements.fishShadow.classList.remove('hidden');
+        positionFishShadow();
+    }
+    
+    // 更新遊戲狀態文字
+    updateStatusMessage('魚兒上鉤了！快點擊拉起！');
+    
+    // 顯示拉起按鈕
+    if (elements.pullBtn) {
+        // 清除舊按鈕，避免重複綁定
+        const oldPullBtn = elements.pullBtn;
+        const newPullBtn = oldPullBtn.cloneNode(true);
+        oldPullBtn.parentNode.replaceChild(newPullBtn, oldPullBtn);
+        elements.pullBtn = newPullBtn;
+        
+        // 顯示按鈕並添加拉起事件
+        elements.pullBtn.classList.remove('hidden');
+        elements.pullBtn.addEventListener('click', reelIn);
+        console.log('已添加拉起按鈕監聽器');
+    } else {
+        console.error('拉起按鈕元素不存在!');
+    }
+    
+    // 設定魚逃跑的時間窗口
     setTimeout(() => {
-        statusElement.style.animation = 'bounce 0.5s';
-    }, 10);
+        console.log('檢查魚是否逃跑，當前狀態:', gameState.status);
+        if (gameState.status === 'bite') {
+            console.log('魚兒逃跑了');
+            gameState.canCatch = false;
+            failFishing('魚兒逃跑了！');
+        }
+    }, params.catchWindow);
 }
 
-// 捕獲魚
-function catchFish() {
-    if (!currentRarity) return;
+// 隨機放置魚影
+function positionFishShadow() {
+    const fishingArea = document.querySelector('.fishing-area');
+    const areaWidth = fishingArea.offsetWidth;
+    const areaHeight = fishingArea.offsetHeight;
     
-    // 根據稀有度隨機選擇一條魚
-    const fishByRarity = fishDatabase.filter(fish => fish.rarity === currentRarity);
-    const randomFish = fishByRarity[Math.floor(Math.random() * fishByRarity.length)];
+    // 水中區域（下半部分）
+    const waterAreaTop = areaHeight * 0.4;
+    const waterAreaHeight = areaHeight - waterAreaTop;
     
-    // 添加捕獲的魚到玩家收藏
-    const isNewFish = addFishToCollection(randomFish);
+    // 隨機位置
+    const randomLeft = Math.random() * (areaWidth - 100) + 50;
+    const randomTop = waterAreaTop + Math.random() * (waterAreaHeight - 100);
     
-    // 顯示剛捕獲的魚
-    displayCaughtFish(randomFish, isNewFish);
+    // 設置魚影位置
+    elements.fishShadow.style.left = `${randomLeft}px`;
+    elements.fishShadow.style.top = `${randomTop}px`;
+}
+
+// 拉起釣魚線
+function reelIn() {
+    console.log('嘗試拉起魚線，當前狀態:', gameState.status, '可捕獲:', gameState.canCatch);
+    
+    if (gameState.status !== 'bite' || !gameState.canCatch) {
+        console.log('無法拉起魚線，狀態或捕獲條件不符');
+        return;
+    }
+    
+    // 設置遊戲狀態為拉起中
+    gameState.status = 'reeling';
+    console.log('開始拉起魚線');
+    
+    // 隱藏拉起按鈕並移除事件監聽器
+    if (elements.pullBtn) {
+        elements.pullBtn.classList.add('hidden');
+        elements.pullBtn.removeEventListener('click', reelIn);
+    }
+    
+    // 停止浮標動畫
+    if (elements.floatObject) {
+        elements.floatObject.classList.remove('bobbing');
+    }
+    
+    // 隱藏魚影
+    if (elements.fishShadow) {
+        elements.fishShadow.classList.add('hidden');
+    }
     
     // 更新狀態
-    updateStatusMessage(`你捕獲了 ${randomFish.name}！已添加到你的收藏。`);
+    updateStatusMessage('拉起釣魚線...');
     
-    // 重置遊戲狀態
-    currentRarity = null;
-    elements.catchFishBtn.disabled = true;
+    // 延遲顯示釣到魚的結果
+    setTimeout(() => {
+        fishCaught();
+    }, 1000);
 }
 
-// 添加魚到收藏中
-function addFishToCollection(fish) {
-    // 檢查魚是否已經在收藏中
+// 釣到魚
+function fishCaught() {
+    // 設置遊戲狀態為成功
+    gameState.status = 'success';
+    
+    // 獲取當前釣到的魚
+    const fish = gameState.currentFish;
+    
+    if (!fish) {
+        console.error('錯誤: 沒有選擇到魚!');
+        failFishing('釣魚失敗，請重試');
+        return;
+    }
+    
+    console.log('成功釣到魚:', fish.name);
+    
+    // 檢查是否是新捕獲的魚
     const isNewFish = !gameState.caughtFish.includes(fish.id);
     
+    // 更新已捕獲的魚清單
     if (isNewFish) {
         gameState.caughtFish.push(fish.id);
         saveCaughtFish();
         updateCaughtFishCount();
     }
     
-    return isNewFish;
-}
-
-// 顯示捕獲的魚
-function displayCaughtFish(fish, isNewFish) {
-    // 設置魚的信息
-    elements.caughtFishImg.src = fish.image;
-    elements.caughtFishName.textContent = fish.name;
-    elements.caughtFishRarity.textContent = `稀有度: ${getRarityText(fish.rarity)}`;
-    elements.caughtFishRarity.className = `rarity-${fish.rarity}`;
-    elements.caughtFishDesc.textContent = fish.description;
-    
-    // 更新標題
-    const catchTitle = document.querySelector('#fish-caught-panel h2');
-    if (isNewFish) {
-        catchTitle.innerHTML = '<i class="fas fa-fish"></i> 哇！是新的品種呢！';
-        // 添加特殊效果
-        catchTitle.classList.add('new-fish');
-        setTimeout(() => {
-            catchTitle.classList.remove('new-fish');
-        }, 3000);
-    } else {
-        catchTitle.innerHTML = '<i class="fas fa-fish"></i> 釣到魚了！';
-        catchTitle.classList.remove('new-fish');
+    // 確保捕獲面板可見
+    if (elements.fishCaughtPanel) {
+        elements.fishCaughtPanel.style.display = 'block';
+        elements.fishCaughtPanel.classList.remove('hidden');
     }
     
-    // 顯示捕獲面板
-    elements.fishCaughtPanel.classList.remove('hidden');
+    // 設置魚的圖片
+    if (elements.caughtFishImg) {
+        elements.caughtFishImg.src = fish.image;
+        elements.caughtFishImg.alt = fish.name;
+        console.log('設置魚圖片:', fish.image);
+    }
+    
+    // 設置魚的名稱
+    if (elements.caughtFishName) {
+        elements.caughtFishName.textContent = fish.name;
+    }
+    
+    // 設置魚的稀有度
+    const rarityText = ['', '普通', '高級', '稀有', '傳說'];
+    if (elements.caughtFishRarity) {
+        elements.caughtFishRarity.textContent = `稀有度: ${rarityText[fish.rarity]}`;
+        elements.caughtFishRarity.className = '';
+        elements.caughtFishRarity.classList.add(`rarity-${fish.rarity}`);
+    }
+    
+    // 設置魚的環境和時間
+    if (elements.caughtFishEnvironmentTime) {
+        elements.caughtFishEnvironmentTime.textContent = `區域: ${fish.environment} | 時間: ${fish.time}`;
+    }
+    
+    // 設置魚的描述
+    if (elements.caughtFishDesc) {
+        elements.caughtFishDesc.textContent = fish.description;
+    }
+    
+    // 移除所有舊的新魚標識
+    const oldBadges = document.querySelectorAll('.new-fish');
+    oldBadges.forEach(badge => {
+        if (badge.parentNode) badge.parentNode.removeChild(badge);
+    });
+    
+    // 如果是新魚，添加新魚標識
+    if (isNewFish) {
+        const fishInfoElement = elements.fishCaughtPanel.querySelector('.fish-info');
+        if (fishInfoElement) {
+            const newFishBadge = document.createElement('div');
+            newFishBadge.className = 'new-fish';
+            newFishBadge.textContent = '新!';
+            fishInfoElement.appendChild(newFishBadge);
+        }
+    }
+    
+    // 修改繼續按鈕文字和事件
+    if (elements.continueBtn) {
+        elements.continueBtn.textContent = isNewFish ? '查看圖鑑' : '繼續釣魚';
+        
+        // 清除舊的事件監聽器
+        const oldBtn = elements.continueBtn;
+        const newBtn = oldBtn.cloneNode(true);
+        oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+        elements.continueBtn = newBtn;
+        
+        // 添加新的點擊事件
+        elements.continueBtn.addEventListener('click', function() {
+            console.log('點擊繼續按鈕');
+            elements.fishCaughtPanel.classList.add('hidden');
+            
+            if (isNewFish) {
+                // 顯示圖鑑，並設置篩選器以顯示該魚
+                elements.filterEnvironment.value = fish.environment;
+                elements.filterTime.value = fish.time;
+                elements.filterRarity.value = fish.rarity.toString();
+                showCollection();
+                
+                // 在圖鑑中突出顯示該魚
+                setTimeout(() => {
+                    const fishItems = document.querySelectorAll('.fish-item');
+                    fishItems.forEach(item => {
+                        const fishName = item.querySelector('h3').textContent;
+                        if (fishName === fish.name) {
+                            item.classList.add('new-fish');
+                            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                }, 300);
+            } else {
+                // 如果不是新魚，直接重置釣魚狀態
+                resetFishing();
+            }
+        });
+    }
+    
+    // 隱藏釣魚元素
+    elements.fishHook.classList.add('hidden');
+    elements.floatObject.classList.add('hidden');
+    
+    // 更新狀態
+    updateStatusMessage('恭喜釣到魚！');
+}
+
+// 釣魚失敗
+function failFishing(message) {
+    gameState.status = 'failed';
+    
+    // 更新狀態文字
+    updateStatusMessage(message);
+    
+    // 隱藏釣魚相關元素
+    if (elements.fishHook) elements.fishHook.classList.add('hidden');
+    if (elements.floatObject) {
+        elements.floatObject.classList.add('hidden');
+        elements.floatObject.classList.remove('bobbing');
+    }
+    if (elements.pullBtn) {
+        elements.pullBtn.classList.add('hidden');
+        elements.pullBtn.removeEventListener('click', reelIn);
+    }
+    if (elements.fishShadow) elements.fishShadow.classList.add('hidden');
+    
+    // 稍後重置釣魚狀態
+    setTimeout(resetFishing, 3000);
 }
 
 // 重置釣魚狀態
 function resetFishing() {
+    console.log('重置釣魚狀態');
+    
+    // 重置遊戲狀態
     gameState.status = 'ready';
     gameState.currentFish = null;
-    gameState.selectedRarity = null;
-    elements.castBtn.disabled = false;
-    elements.fishHook.classList.add('hidden');
-    elements.floatObject.classList.add('hidden');
-    elements.floatObject.classList.remove('bite');
-    elements.fishShadow.classList.add('hidden');
+    gameState.canCatch = false;
     
-    updateStatus('點擊「甩竿」開始釣魚');
+    // 隱藏釣魚相關元素
+    if (elements.fishHook) elements.fishHook.classList.add('hidden');
+    if (elements.floatObject) {
+        elements.floatObject.classList.add('hidden');
+        elements.floatObject.classList.remove('bobbing');
+    }
+    if (elements.pullBtn) elements.pullBtn.classList.add('hidden');
+    if (elements.fishShadow) elements.fishShadow.classList.add('hidden');
+    if (elements.wheelContainer) {
+        elements.wheelContainer.classList.add('hidden');
+        elements.wheelContainer.style.display = 'none';
+    }
+    if (elements.fishCaughtPanel) {
+        elements.fishCaughtPanel.classList.add('hidden');
+    }
+    
+    // 重置釣魚按鈕
+    if (elements.castBtn) {
+        elements.castBtn.textContent = '釣魚!';
+        elements.castBtn.disabled = false;
+        
+        // 清除所有現有事件並創建新按鈕
+        const oldElement = elements.castBtn;
+        const newElement = oldElement.cloneNode(true);
+        oldElement.parentNode.replaceChild(newElement, oldElement);
+        elements.castBtn = newElement;
+        
+        // 添加新的甩竿事件
+        elements.castBtn.addEventListener('click', castLine);
+    }
+    
+    // 更新狀態
+    updateStatusMessage('準備好釣魚了嗎？');
+    
+    // 移除新魚標識
+    const newFishBadges = document.querySelectorAll('.new-fish');
+    newFishBadges.forEach(badge => {
+        if (badge && badge.parentNode) {
+            badge.parentNode.removeChild(badge);
+        }
+    });
+    
+    console.log('釣魚狀態已重置，目前狀態:', gameState.status);
 }
 
 // 顯示圖鑑
 function showCollection() {
-    // 清空現有內容
+    // 清空現有圖鑑內容
     elements.fishCollection.innerHTML = '';
     
-    // 添加所有魚類到圖鑑
-    fishDatabase.forEach(fish => {
+    // 獲取篩選條件
+    const envFilter = elements.filterEnvironment.value;
+    const timeFilter = elements.filterTime.value;
+    const rarityFilter = elements.filterRarity.value;
+    
+    // 篩選並排序魚類
+    let fishesToShow = [...fishDatabase];
+    
+    // 應用篩選條件
+    if (envFilter !== 'all') {
+        fishesToShow = fishesToShow.filter(fish => fish.environment === envFilter);
+    }
+    if (timeFilter !== 'all') {
+        fishesToShow = fishesToShow.filter(fish => fish.time === timeFilter);
+    }
+    if (rarityFilter !== 'all') {
+        fishesToShow = fishesToShow.filter(fish => fish.rarity === parseInt(rarityFilter));
+    }
+    
+    // 按ID排序
+    fishesToShow.sort((a, b) => a.id - b.id);
+    
+    // 為每條魚創建圖鑑條目
+    fishesToShow.forEach(fish => {
+        const fishElement = document.createElement('div');
+        fishElement.className = 'fish-item';
+        
+        // 檢查是否已捕獲
         const isCaught = gameState.caughtFish.includes(fish.id);
         
-        const fishItem = document.createElement('div');
-        fishItem.className = `fish-item ${isCaught ? 'caught' : 'uncaught'}`;
-        
-        const fishImage = document.createElement('img');
+        // 如果已捕獲，顯示完整信息；否則，只顯示未知魚的輪廓
         if (isCaught) {
-            // 檢查圖片是否存在
-            const img = new Image();
-            img.onload = function() {
-                fishImage.src = this.src;
-            };
-            img.onerror = function() {
-                fishImage.src = defaultFishImage;
-            };
-            img.src = fish.image;
+            // 稀有度顏色設置
+            const rarityClass = `rarity-${fish.rarity}`;
+            fishElement.classList.add(rarityClass);
+            
+            // 魚的HTML結構
+            fishElement.innerHTML = `
+                <img src="${fish.image}" alt="${fish.name}">
+                <div class="fish-info">
+                    <h3>${fish.name}</h3>
+                    <p class="fish-rarity ${rarityClass}">稀有度: ${getRarityText(fish.rarity)}</p>
+                    <p class="fish-location">${fish.environment} | ${fish.time}</p>
+                    <p class="fish-desc">${fish.description}</p>
+                </div>
+            `;
         } else {
-            fishImage.src = defaultFishImage;
+            // 未捕獲的魚，顯示問號
+            fishElement.classList.add('uncaught');
+            fishElement.innerHTML = `
+                <img src="images/unknown-fish.png" alt="未知魚類">
+                <div class="fish-info">
+                    <h3>???</h3>
+                    <p class="fish-rarity">稀有度: ???</p>
+                    <p class="fish-location">??? | ???</p>
+                    <p class="fish-desc">尚未發現的神秘魚類...</p>
+                </div>
+            `;
         }
         
-        const fishName = document.createElement('div');
-        fishName.className = 'fish-name';
-        fishName.textContent = isCaught ? fish.name : '???';
-        
-        const fishRarity = document.createElement('div');
-        fishRarity.className = `fish-rarity rarity-${fish.rarity}`;
-        fishRarity.textContent = isCaught ? getRarityText(fish.rarity) : '';
-        
-        fishItem.appendChild(fishImage);
-        fishItem.appendChild(fishName);
-        fishItem.appendChild(fishRarity);
-        
-        // 點擊顯示詳細資訊
-        if (isCaught) {
-            fishItem.addEventListener('click', () => {
-                alert(`名稱: ${fish.name}\n描述: ${fish.description}\n稀有度: ${getRarityText(fish.rarity)}`);
-            });
-        }
-        
-        elements.fishCollection.appendChild(fishItem);
+        elements.fishCollection.appendChild(fishElement);
     });
     
     // 顯示圖鑑面板
     elements.collectionPanel.classList.remove('hidden');
 }
 
+// 篩選圖鑑
+function filterCollection() {
+    showCollection();
+}
+
 // 獲取稀有度文字
 function getRarityText(rarity) {
-    switch (rarity) {
-        case 1: return '普通';
-        case 2: return '高級';
-        case 3: return '稀有';
-        case 4: return '傳說';
-        default: return '普通';
-    }
+    const rarityTexts = ['', '普通', '高級', '稀有', '傳說'];
+    return rarityTexts[rarity] || '未知';
 }
 
-// 更新狀態文字
-function updateStatus(message, isAlert = false) {
+// 隨機等待時間
+function getRandomWaitTime() {
+    return Math.random() * (params.maxWaitTime - params.minWaitTime) + params.minWaitTime;
+}
+
+// 更新狀態信息
+function updateStatusMessage(message) {
     elements.statusText.textContent = message;
-    
-    // 如果是警告狀態，添加警告樣式
-    if (isAlert) {
-        elements.statusText.parentElement.classList.add('alert');
-    } else {
-        elements.statusText.parentElement.classList.remove('alert');
-    }
 }
 
-// 繼續釣魚 (轉盤結果後)
-function continueAfterWheel() {
-    // 先禁用按鈕以避免重複點擊
-    elements.catchFishBtn.disabled = true;
-    
-    // 重置轉盤和結果區域
-    elements.wheelResult.style.display = 'none';
-    elements.wheel.style.transition = 'none';
-    elements.wheel.style.transform = 'rotate(0deg)';
-    
-    // 解決可能的滾動問題
-    document.body.style.overflow = '';
-    
-    // 強制瀏覽器更新佈局
-    document.body.offsetHeight;
-    
-    // 隱藏轉盤界面
-    elements.wheelContainer.classList.add('hidden');
-    
-    // 延遲後顯示捕獲結果，確保轉盤已完全隱藏且佈局正常
-    setTimeout(() => {
-        catchFish();
-    }, 100);
-}
-
-// 初始化事件監聽器
-function initEventListeners() {
-    // 轉盤相關事件
-    elements.stopWheelBtn.addEventListener('click', stopWheel);
-    elements.catchFishBtn.addEventListener('click', continueAfterWheel);
-}
-
-// 重新開始冒險
+// 重新開始冒險（重置捕獲的魚）
 function restartAdventure() {
-    // 顯示確認對話框
-    if (confirm('確定要重新開始冒險嗎？這將清空所有已捕獲的魚類記錄！')) {
-        // 清空已捕獲的魚類陣列
+    if (confirm('確定要重新開始冒險嗎？所有已捕獲的魚將被清除！')) {
         gameState.caughtFish = [];
-        
-        // 保存空的捕獲記錄到本地儲存
         saveCaughtFish();
-        
-        // 更新UI顯示
         updateCaughtFishCount();
-        
-        // 顯示提示訊息
-        alert('冒險已重新開始！所有魚類圖鑑已重置。');
-        
-        // 重置釣魚狀態
-        resetFishing();
-        
-        // 如果圖鑑面板是開啟的，更新並重新顯示
-        if (!elements.collectionPanel.classList.contains('hidden')) {
-            showCollection();
-        }
+        showCollection(); // 重新顯示空的圖鑑
     }
 }
 
-// 在頁面載入完成後初始化遊戲和事件監聽
-document.addEventListener('DOMContentLoaded', () => {
+// 遊戲啟動
+window.addEventListener('DOMContentLoaded', () => {
     initGame();
-    initEventListeners();
 });
