@@ -1659,6 +1659,50 @@ button:disabled {
     opacity: 0.7;
 }
 
+.wheel-result {
+    margin-top: 15px;
+    padding: 15px 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.result-message {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.result-title {
+    color: white;
+}
+
+.result-value {
+    font-size: 28px;
+    text-shadow: 0 0 10px currentColor;
+    animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 5px currentColor;
+    }
+    to {
+        text-shadow: 0 0 20px currentColor;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes pulse {
     0% {
         box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7);
@@ -1708,28 +1752,17 @@ button:disabled {
     font-size: 14px;
 }
 
-/* 確保轉盤顯示在中間 */
-.wheel-area {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.wheel text {
-    font-size: 16px;
-    font-weight: bold;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-}
-
 /* 為不同稀有度設置輪廓顏色 */
 .wheel path {
     stroke: #fff;
     stroke-width: 2;
+    transition: all 0.3s;
 }
 
 .wheel path:hover {
     opacity: 0.9;
     stroke-width: 3;
+    filter: brightness(1.1);
 }
 
 /* 優化轉盤容器顯示 */
