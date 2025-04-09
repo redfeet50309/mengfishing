@@ -1,228 +1,256 @@
-// 定義轉盤組件
+// RarityWheel component with Vue 3 Composition API
 const RarityWheel = {
-    template: `
-        <div class="rarity-wheel">
-            <div class="rarity-legend">
-                <div class="legend-title">稀有度機率:</div>
-                <div v-for="segment in segments" :key="segment.label" class="legend-item">
-                    <span class="legend-color" :style="{ backgroundColor: segment.color }"></span>
-                    <span class="legend-text">{{ segment.label }}: {{ Math.round(segment.probability * 100) }}%</span>
-                </div>
-            </div>
-            
-            <div class="wheel-area">
-                <div class="wheel-svg-container">
-                    <div class="pointer"></div>
-                    <svg
-                        :width="size"
-                        :height="size"
-                        :viewBox="\`0 0 \${size} \${size}\`"
-                        class="wheel"
-                        :style="wheelStyle"
-                    >
-                        <g :transform="\`translate(\${size/2}, \${size/2})\`">
-                            <!-- 普通 (50%) - 綠色 -->
-                            <path
-                                d="M 0 0 L 0 -150 A 150 150 0 0 1 0 150 Z"
-                                fill="#4CAF50"
-                            />
-                            <!-- 高級 (30%) - 藍色 -->
-                            <path
-                                d="M 0 0 L 0 150 A 150 150 0 0 1 -150 0 Z"
-                                fill="#2196F3"
-                            />
-                            <!-- 稀有 (15%) - 紫色 -->
-                            <path
-                                d="M 0 0 L -150 0 A 150 150 0 0 1 -106.06 -106.06 Z"
-                                fill="#9C27B0"
-                            />
-                            <!-- 傳說 (5%) - 金色 -->
-                            <path
-                                d="M 0 0 L -106.06 -106.06 A 150 150 0 0 1 0 -150 Z"
-                                fill="#FFC107"
-                            />
-
-                            <!-- 中心圓 -->
-                            <circle r="40" fill="#333333" />
-                            
-                            <!-- 稀有度文字 -->
-                            <text x="0" y="85" text-anchor="middle" fill="white" font-weight="bold">普通</text>
-                            <text x="-85" y="0" text-anchor="middle" fill="white" font-weight="bold">高級</text>
-                            <text x="-90" y="-70" text-anchor="middle" fill="white" font-weight="bold">稀有</text>
-                            <text x="-20" y="-85" text-anchor="middle" fill="white" font-weight="bold">傳說</text>
-                        </g>
-                    </svg>
-                </div>
-            </div>
-            
-            <div class="wheel-controls">
-                <button
-                    class="spin-button"
-                    @click="stopSpin"
-                    :disabled="!isSpinning || isStopping"
-                >
-                    點擊停止
-                </button>
-            </div>
-            
-            <div v-if="showResult" class="wheel-result">
-                <div class="result-message">
-                    <span class="result-title">獲得：</span>
-                    <span class="result-value" :style="{ color: getResultColor() }">{{ resultText }}</span>
-                </div>
-            </div>
-        </div>
-    `,
-    
-    setup() {
-        const { ref, computed, onMounted } = Vue;
-        
-        // 定義轉盤區段 - 修正扇形角度以形成完整圓形
-        const segments = [
-            { label: '普通', probability: 0.5, color: '#4CAF50', startAngle: 270, endAngle: 90 },
-            { label: '高級', probability: 0.3, color: '#2196F3', startAngle: 90, endAngle: 180 },
-            { label: '稀有', probability: 0.15, color: '#9C27B0', startAngle: 180, endAngle: 234 },
-            { label: '傳說', probability: 0.05, color: '#FFC107', startAngle: 234, endAngle: 270 }
-        ];
-
-        // 狀態
-        const size = 300;
-        const currentAngle = ref(0);
-        const isSpinning = ref(false);
-        const isStopping = ref(false);
-        const animationId = ref(null);
-        const spinDuration = 3000;
-        const spinSpeed = ref(8);
-        const showResult = ref(false);
-        const resultText = ref('');
-
-        // 計算轉盤樣式
-        const wheelStyle = computed(() => {
-            if (isStopping.value) {
-                return {
-                    transform: `rotate(${currentAngle.value}deg)`,
-                    transition: `transform ${spinDuration}ms cubic-bezier(0.17, 0.67, 0.21, 0.9)`
-                };
-            } else {
-                return {
-                    transform: `rotate(${currentAngle.value}deg)`,
-                    transition: 'none'
-                };
-            }
-        });
-
-        // 獲取結果顏色
-        function getResultColor() {
-            const segment = segments.find(s => s.label === resultText.value);
-            return segment ? segment.color : '#FFFFFF';
-        }
-
-        // 開始旋轉
-        function startSpin() {
-            console.log("開始旋轉轉盤");
-            if (isSpinning.value || isStopping.value) return;
-            
-            isSpinning.value = true;
-            showResult.value = false;
-            resultText.value = '';
-            spinSpeed.value = 8; // 旋轉速度
-            
-            function animate() {
-                if (!isSpinning.value) return;
-                
-                currentAngle.value = (currentAngle.value + spinSpeed.value) % 360;
-                animationId.value = requestAnimationFrame(animate);
-            }
-            
-            animate();
-        }
-
-        // 停止旋轉
-        function stopSpin() {
-            if (!isSpinning.value || isStopping.value) return;
-            console.log("停止轉盤");
-            
-            isSpinning.value = false;
-            isStopping.value = true;
-            cancelAnimationFrame(animationId.value);
-
-            // 計算停在哪個稀有度 - 隨機選取機率
-            const random = Math.random();
-            let result = '';
-            let targetAngle = 0;
-            let accumulatedProbability = 0;
-            
-            for (const segment of segments) {
-                accumulatedProbability += segment.probability;
-                if (random <= accumulatedProbability) {
-                    // 計算目標角度 - 指向區段中間位置
-                    const midAngle = (segment.startAngle + segment.endAngle) / 2;
-                    // 反向計算，因為是轉盤轉而非指針動
-                    targetAngle = 360 - midAngle;
-                    result = segment.label;
-                    break;
-                }
-            }
-            
-            // 確保目標角度在 0-360 度範圍內
-            targetAngle = targetAngle % 360;
-            
-            // 添加額外旋轉
-            const extraRotations = 5 * 360;
-            const currentDeg = currentAngle.value % 360;
-            
-            // 計算最短路徑到目標角度
-            let finalAngle = currentAngle.value - currentDeg + extraRotations + targetAngle;
-            
-            // 設置最終角度
-            currentAngle.value = finalAngle;
-            resultText.value = result;
-            
-            // 動畫結束時顯示結果並調用回調
-            setTimeout(() => {
-                isStopping.value = false;
-                showResult.value = true;
-                
-                if (window.handleRarityResult) {
-                    window.handleRarityResult(result);
-                }
-            }, spinDuration);
-        }
-
-        // 掛載完成後，將方法暴露到全局
-        onMounted(() => {
-            window.rarityWheelAPI = {
-                startSpin,
-                stopSpin
-            };
-            
-            console.log("轉盤組件已初始化，等待外部調用 startSpin");
-        });
-
-        return {
-            size,
-            segments,
-            currentAngle,
-            isSpinning,
-            isStopping,
-            wheelStyle,
-            stopSpin,
-            showResult,
-            resultText,
-            getResultColor
-        };
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    onResult: {
+      type: Function,
+      default: () => {}
     }
+  },
+  
+  setup(props, { emit }) {
+    const { ref, watch, computed, onMounted } = Vue;
+
+    // Wheel state
+    const isSpinning = ref(false);
+    const rotationAngle = ref(0);
+    const resultRarity = ref(null);
+    
+    // Rarity configurations
+    const rarityConfig = {
+      legendary: {
+        color: '#FFD700', // Gold
+        probability: 0.03,
+        startAngle: 342,
+        endAngle: 360
+      },
+      rare: {
+        color: '#9966CC', // Purple
+        probability: 0.18,
+        startAngle: 288,
+        endAngle: 342
+      },
+      premium: {
+        color: '#4169E1', // Royal Blue
+        probability: 0.36,
+        startAngle: 180,
+        endAngle: 288
+      },
+      common: {
+        color: '#808080', // Gray
+        probability: 0.43,
+        startAngle: 0,
+        endAngle: 180
+      }
+    };
+
+    // Watch for props changes
+    watch(
+      () => props.visible,
+      (newValue) => {
+        if (newValue) {
+          startSpin();
+        }
+      }
+    );
+
+    // Calculate the final angle for the spin based on rarity
+    const calculateFinalAngle = (rarity) => {
+      const config = rarityConfig[rarity];
+      if (!config) return 360 * 5 + Math.random() * 360; // Default
+      
+      // Calculate random angle within the rarity's range
+      const range = config.endAngle - config.startAngle;
+      const randomAngle = config.startAngle + Math.random() * range;
+      
+      // Add multiple full rotations for spinning effect (at least 5)
+      return 360 * 5 + randomAngle;
+    };
+
+    // Start the spin animation
+    const startSpin = () => {
+      isSpinning.value = true;
+      rotationAngle.value = 0;
+      resultRarity.value = null;
+      
+      // Initial spinning animation
+      requestAnimationFrame(updateSpin);
+    };
+
+    // Update the spin animation
+    const updateSpin = () => {
+      if (!isSpinning.value) return;
+      
+      if (resultRarity.value) {
+        // We have a result, animate to the final position
+        const finalAngle = calculateFinalAngle(resultRarity.value);
+        animateToFinalPosition(finalAngle);
+      } else {
+        // Continue spinning until we get a result
+        rotationAngle.value += 10;
+        requestAnimationFrame(updateSpin);
+      }
+    };
+
+    // Animate to the final position with easing
+    const animateToFinalPosition = (finalAngle) => {
+      const duration = 3000; // 3 seconds for slowing down
+      const startAngle = rotationAngle.value;
+      const angleToRotate = finalAngle - (startAngle % 360);
+      const startTime = performance.now();
+      
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function - easeOutCubic
+        const easing = 1 - Math.pow(1 - progress, 3);
+        rotationAngle.value = startAngle + angleToRotate * easing;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          finishSpin();
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    };
+
+    // Determine random rarity based on probabilities
+    const determineRandomRarity = () => {
+      const random = Math.random();
+      let cumulativeProbability = 0;
+      
+      for (const [rarity, config] of Object.entries(rarityConfig)) {
+        cumulativeProbability += config.probability;
+        if (random <= cumulativeProbability) {
+          return rarity;
+        }
+      }
+      
+      return 'common'; // 默認普通
+    };
+
+    // Finish the spin and emit the result
+    const finishSpin = () => {
+      isSpinning.value = false;
+      
+      // Determine the rarity result
+      const result = determineRandomRarity();
+      resultRarity.value = result;
+      
+      // Add vibration effect to the pointer
+      const pointerElement = document.querySelector('.wheel-pointer');
+      if (pointerElement) {
+        pointerElement.classList.add('vibrate');
+        setTimeout(() => {
+          pointerElement.classList.remove('vibrate');
+        }, 1000);
+      }
+      
+      // Emit the result after a short pause
+      setTimeout(() => {
+        emit('result', {
+          id: result,
+          label: getDisplayLabel(result)
+        });
+        
+        // Also expose the result for the global handler
+        if (window.handleRarityResult) {
+          window.handleRarityResult(getDisplayLabel(result));
+        }
+      }, 500);
+    };
+    
+    // Convert rarity id to display label
+    const getDisplayLabel = (rarityId) => {
+      const map = {
+        'legendary': '傳說',
+        'rare': '稀有',
+        'premium': '進階',
+        'common': '普通'
+      };
+      return map[rarityId] || rarityId;
+    };
+
+    // Computed styles
+    const wheelStyle = computed(() => {
+      return {
+        transform: `rotate(${rotationAngle.value}deg)`,
+        transition: isSpinning.value ? 'none' : 'transform 0.5s ease'
+      };
+    });
+
+    onMounted(() => {
+      console.log('稀有度轉盤組件已初始化');
+      // 將開始旋轉方法暴露給全局
+      window.rarityWheelAPI = {
+        startSpin
+      };
+    });
+
+    return {
+      isSpinning,
+      rotationAngle,
+      rarityConfig,
+      wheelStyle
+    };
+  },
+  template: `
+    <div class="rarity-wheel-container" v-if="visible">
+      <div class="wheel-title">稀有度轉盤</div>
+      <div class="wheel-area">
+        <div class="wheel" :style="wheelStyle">
+          <svg viewBox="0 0 100 100">
+            <!-- Legendary sector (3% - Gold) -->
+            <path d="M50,50 L50,0 A50,50 0 0,1 64.28,3.45 Z" :fill="rarityConfig.legendary.color" stroke="white" stroke-width="0.5"></path>
+            
+            <!-- Rare sector (18% - Purple) -->
+            <path d="M50,50 L64.28,3.45 A50,50 0 0,1 93.30,25 Z" :fill="rarityConfig.rare.color" stroke="white" stroke-width="0.5"></path>
+            
+            <!-- Premium sector (36% - Blue) -->
+            <path d="M50,50 L93.30,25 A50,50 0 0,1 50,100 Z" :fill="rarityConfig.premium.color" stroke="white" stroke-width="0.5"></path>
+            
+            <!-- Common sector (43% - Gray) -->
+            <path d="M50,50 L50,100 A50,50 0 0,1 0,50 A50,50 0 0,1 50,0 Z" :fill="rarityConfig.common.color" stroke="white" stroke-width="0.5"></path>
+          </svg>
+        </div>
+        <div class="wheel-pointer">
+          <div class="pointer-tip"></div>
+          <div class="pointer-label">指針</div>
+        </div>
+      </div>
+      
+      <div class="rarity-legend">
+        <div class="rarity-item">
+          <div class="color-box" :style="{ backgroundColor: rarityConfig.legendary.color }"></div>
+          <span class="rarity-name">傳奇 (3%)</span>
+        </div>
+        <div class="rarity-item">
+          <div class="color-box" :style="{ backgroundColor: rarityConfig.rare.color }"></div>
+          <span class="rarity-name">稀有 (18%)</span>
+        </div>
+        <div class="rarity-item">
+          <div class="color-box" :style="{ backgroundColor: rarityConfig.premium.color }"></div>
+          <span class="rarity-name">進階 (36%)</span>
+        </div>
+        <div class="rarity-item">
+          <div class="color-box" :style="{ backgroundColor: rarityConfig.common.color }"></div>
+          <span class="rarity-name">普通 (43%)</span>
+        </div>
+      </div>
+    </div>
+  `
 };
 
-// 創建並掛載 Vue 應用
-document.addEventListener('DOMContentLoaded', () => {
-    const app = Vue.createApp({
-        components: {
-            'rarity-wheel': RarityWheel
-        }
-    });
-    
-    app.mount('#rarity-wheel-app');
-    
-    console.log("轉盤組件已初始化");
-});
+// 全局註冊組件（適用於非模組化環境）
+if (typeof Vue !== 'undefined') {
+  Vue.component('rarity-wheel', RarityWheel);
+}
+
+// 同時支援模組導出
+export default RarityWheel;

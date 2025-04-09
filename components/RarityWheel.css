@@ -1,0 +1,145 @@
+/* RarityWheel.css - 稀有度轉盤樣式 */
+
+.rarity-wheel-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.wheel-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: white;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.wheel-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  margin: 20px 0;
+}
+
+.wheel {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  transform-origin: center;
+  will-change: transform;
+}
+
+.wheel svg {
+  width: 100%;
+  height: 100%;
+}
+
+.wheel svg path:hover {
+  filter: brightness(1.1);
+  cursor: pointer;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 20px;
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pointer-tip {
+  width: 20px;
+  height: 20px;
+  background-color: #ff3333;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.pointer-label {
+  font-size: 0.8rem;
+  color: white;
+  margin-top: 5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.rarity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.rarity-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+.color-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+}
+
+.rarity-name {
+  font-size: 0.9rem;
+  color: white;
+  white-space: nowrap;
+}
+
+/* 動畫效果 */
+@keyframes wheelVibrate {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-50%) rotate(2deg); }
+  75% { transform: translateX(-50%) rotate(-2deg); }
+}
+
+.wheel-pointer.vibrate {
+  animation: wheelVibrate 0.2s ease-in-out 5;
+}
+
+/* 響應式調整 */
+@media (max-width: 480px) {
+  .rarity-wheel-container {
+    max-width: 300px;
+    padding: 10px;
+  }
+  
+  .wheel-title {
+    font-size: 1.2rem;
+  }
+  
+  .rarity-item {
+    padding: 3px 8px;
+  }
+  
+  .rarity-name {
+    font-size: 0.8rem;
+  }
+  
+  .pointer-label {
+    font-size: 0.7rem;
+  }
+}
