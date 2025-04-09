@@ -1,11 +1,85 @@
 // 魚類資料庫
+
+// 使用簡單的Base64編碼來處理SVG圖片
+// 創建一個函數將SVG內容轉換為普通的base64編碼
+function createSvgDataUrl(svgContent) {
+    try {
+        // 將SVG內容轉換為base64編碼
+        // 處理中文字符可能導致的錯誤
+        const base64 = btoa(unescape(encodeURIComponent(svgContent)));
+        return `data:image/svg+xml;base64,${base64}`;
+    } catch (error) {
+        console.error('SVG編碼錯誤:', error);
+        // 返回一個基本的備用SVG
+        const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+            <rect width="200" height="200" fill="#616161"/>
+            <text x="100" y="100" font-family="Arial" font-size="14" text-anchor="middle" fill="white">圖片錯誤</text>
+        </svg>`;
+        return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(fallbackSvg)))}`;
+    }
+}
+
+// 定義SVG魚圖標
+const fish1Svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#FFC107"/>
+    <path d="M60,100 C80,70 120,70 140,100 C120,130 80,130 60,100 Z" fill="white" stroke="#FF5722" stroke-width="2"/>
+    <circle cx="80" cy="90" r="5" fill="black"/>
+    <path d="M140,100 L180,90 M140,100 L180,110" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <text x="100" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">萌萌金魚</text>
+</svg>`;
+
+const fish2Svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#2979FF"/>
+    <path d="M40,100 C60,80 140,80 170,100 C140,120 60,120 40,100 Z" fill="white" stroke="black" stroke-width="2"/>
+    <circle cx="65" cy="95" r="5" fill="black"/>
+    <path d="M40,100 L20,75 M40,100 L20,125" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <path d="M90,80 L90,40" stroke="white" stroke-width="2"/>
+    <text x="100" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">波波旗魚</text>
+</svg>`;
+
+const fish3Svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#AA00FF"/>
+    <path d="M40,100 C60,70 140,70 160,100 C140,130 60,130 40,100 Z" fill="white" stroke="black" stroke-width="2"/>
+    <circle cx="70" cy="90" r="5" fill="black"/>
+    <path d="M80,70 L85,75 M100,70 L105,75 M120,70 L125,75 M80,130 L85,125 M100,130 L105,125 M120,130 L125,125" stroke="#673AB7" stroke-width="2" stroke-linecap="round"/>
+    <text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="white">圓圓石斑</text>
+</svg>`;
+
+const fish4Svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#673AB7"/>
+    <path d="M30,120 C60,120 70,80 100,80 C130,80 140,120 170,120" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"/>
+    <circle cx="50" cy="120" r="4" fill="black"/>
+    <circle cx="150" cy="120" r="4" fill="black"/>
+    <text x="100" y="150" font-family="Arial" font-size="14" text-anchor="middle" fill="white">軟軟鰻魚</text>
+</svg>`;
+
+const fish5Svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#607D8B"/>
+    <path d="M60,100 C80,80 120,80 150,100 C120,120 80,120 60,100 Z" fill="white" stroke="black" stroke-width="2"/>
+    <circle cx="80" cy="90" r="5" fill="black"/>
+    <path d="M60,100 L30,90 M60,100 L30,100 M60,100 L30,110" stroke="white" stroke-width="2" stroke-linecap="round"/>
+    <text x="110" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">萌萌鯰魚</text>
+</svg>`;
+
+// 定義默認魚圖標
+const defaultFishSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+    <rect width="200" height="200" fill="#616161"/>
+    <path d="M60,100 C80,80 120,80 140,100 C120,120 80,120 60,100 Z" fill="#9E9E9E" stroke="black" stroke-width="2"/>
+    <circle cx="80" cy="90" r="5" fill="black"/>
+    <text x="100" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">未知魚類</text>
+</svg>`;
+
+// 創建默認魚圖像並確保它在全域空間可用
+const defaultFishImage = createSvgDataUrl(defaultFishSvg);
+window.defaultFishImage = defaultFishImage;
+
 const fishDatabase = [
     // 沿岸環境 - 20種魚
     {
         id: 1,
         name: "萌萌金魚",
         description: "色彩鮮豔的金魚，在清晨的沿岸水域特別活躍。",
-        image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23FFC107"/><path d="M60,100 C80,70 120,70 140,100 C120,130 80,130 60,100 Z" fill="white" stroke="%23FF5722" stroke-width="2"/><circle cx="80" cy="90" r="5" fill="black"/><path d="M140,100 L180,90 M140,100 L180,110" stroke="white" stroke-width="2" stroke-linecap="round"/><text x="100" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">萌萌金魚</text></svg>`,
+        image: createSvgDataUrl(fish1Svg),
         rarity: 1, // 普通
         environment: "沿岸", // 環境
         time: "早上", // 出現時間
@@ -15,7 +89,7 @@ const fishDatabase = [
         id: 2,
         name: "波波旗魚",
         description: "中午時分在沿岸出沒的普通旗魚，游速適中。",
-        image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%232979FF"/><path d="M40,100 C60,80 140,80 170,100 C140,120 60,120 40,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="65" cy="95" r="5" fill="black"/><path d="M40,100 L20,75 M40,100 L20,125" stroke="white" stroke-width="3" stroke-linecap="round"/><path d="M90,80 L90,40" stroke="white" stroke-width="2"/><text x="100" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">波波旗魚</text></svg>`,
+        image: createSvgDataUrl(fish2Svg),
         rarity: 1, // 普通
         environment: "沿岸",
         time: "中午",
@@ -25,7 +99,7 @@ const fishDatabase = [
         id: 3,
         name: "圓圓石斑",
         description: "早上在沿岸活動的石斑魚，體型圓潤可愛。",
-        image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23AA00FF"/><path d="M40,100 C60,70 140,70 160,100 C140,130 60,130 40,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="70" cy="90" r="5" fill="black"/><path d="M80,70 L85,75 M100,70 L105,75 M120,70 L125,75 M80,130 L85,125 M100,130 L105,125 M120,130 L125,125" stroke="%23673AB7" stroke-width="2" stroke-linecap="round"/><text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="white">圓圓石斑</text></svg>`,
+        image: createSvgDataUrl(fish3Svg),
         rarity: 1,
         environment: "沿岸",
         time: "早上",
@@ -35,7 +109,7 @@ const fishDatabase = [
         id: 4,
         name: "軟軟鰻魚",
         description: "夜間沿岸常見的鰻魚，觸感柔軟滑溜。",
-        image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23673AB7"/><path d="M30,120 C60,120 70,80 100,80 C130,80 140,120 170,120" fill="none" stroke="white" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="120" r="4" fill="black"/><circle cx="150" cy="120" r="4" fill="black"/><text x="100" y="150" font-family="Arial" font-size="14" text-anchor="middle" fill="white">軟軟鰻魚</text></svg>`,
+        image: createSvgDataUrl(fish4Svg),
         rarity: 1,
         environment: "沿岸",
         time: "晚上",
@@ -45,7 +119,7 @@ const fishDatabase = [
         id: 5,
         name: "萌萌鯰魚",
         description: "晚上在沿岸出沒的鯰魚，有著可愛的長鬍鬚。",
-        image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23607D8B"/><path d="M60,100 C80,80 120,80 150,100 C120,120 80,120 60,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="80" cy="90" r="5" fill="black"/><path d="M60,100 L30,90 M60,100 L30,100 M60,100 L30,110" stroke="white" stroke-width="2" stroke-linecap="round"/><text x="110" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">萌萌鯰魚</text></svg>`,
+        image: createSvgDataUrl(fish5Svg),
         rarity: 1,
         environment: "沿岸",
         time: "晚上",
@@ -833,6 +907,3 @@ const rarityWeights = {
     3: 0.15, // 稀有 - 15%機率 
     4: 0.05  // 傳說 - 5%機率
 };
-
-// 魚的預設圖像 (如果沒有正確的圖像)
-const defaultFishImage = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23616161"/><path d="M60,100 C80,80 120,80 140,100 C120,120 80,120 60,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="80" cy="90" r="5" fill="black"/><text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="white">未知魚種</text><path d="M80,100 L140,100" stroke="black" stroke-width="1" stroke-dasharray="5,5"/></svg>`;

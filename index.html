@@ -6,6 +6,7 @@
     <title>小濛濛大冒險 - 收集圖鑑</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
 </head>
 <body>
     <div class="game-container">
@@ -72,59 +73,13 @@
         </div>
 
         <!-- 轉盤區域 -->
-        <div class="wheel-container hidden">
-            <div class="wheel-header">
-                <h2>魚類稀有度轉盤</h2>
-                <p id="game-status">轉動轉盤決定魚的稀有度！</p>
-            </div>
-            
-            <div class="wheel-area">
-                <div class="wheel-svg-container">
-                    <!-- 固定指針 - 頂部固定 -->
-                    <div class="wheel-pointer"></div>
-                    
-                    <!-- 轉盤本體 -->
-                    <div id="wheel" class="wheel">
-                        <!-- 轉盤將使用CSS設定背景色和分區 -->
-                    </div>
-                </div>
-            </div>
-                
-            <!-- 轉盤機率說明 -->
-            <div class="rarity-legend">
-                <div class="legend-title">稀有度機率:</div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #4CAF50;"></span>
-                    <span class="legend-text">普通: 50%</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #2196F3;"></span>
-                    <span class="legend-text">高級: 30%</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #9C27B0;"></span>
-                    <span class="legend-text">稀有: 15%</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #FFC107;"></span>
-                    <span class="legend-text">傳說: 5%</span>
-                </div>
-            </div>
-            
-            <!-- 轉盤控制按鈕 -->
-            <div class="wheel-controls">
-                <button id="stop-wheel" class="stop-btn">點擊轉動轉盤</button>
-            </div>
-            
-            <!-- 轉盤結果顯示 -->
-            <div class="wheel-result">
-                <div class="result-message">你釣到了一條魚！</div>
-                <p>魚的稀有度: <span id="rarity-result"></span></p>
-                <button id="catch-fish" class="btn">繼續釣魚</button>
-            </div>
-            
-            <!-- 轉盤說明提示 -->
-            <div class="wheel-instruction">轉盤停止後，點擊「釣魚」按鈕繼續</div>
+        <div class="wheel-header">
+            <h2>魚類稀有度轉盤</h2>
+            <div id="game-status">轉動轉盤決定魚的稀有度！</div>
+        </div>
+
+        <div id="rarity-wheel-app" class="wheel-container hidden">
+            <rarity-wheel></rarity-wheel>
         </div>
         
         <!-- 魚類圖鑑面板 -->
@@ -193,6 +148,7 @@
     </div>
     
     <script src="fish-data.js"></script>
+    <script src="components/RarityWheel.js"></script>
     <script src="game-new.js"></script>
 </body>
 </html>

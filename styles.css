@@ -661,25 +661,21 @@ button:disabled {
     }
 }
 
-/* 轉盤區域相關樣式 */
+/* 優化轉盤區域相關樣式 */
 .wheel-header {
     text-align: center;
-    margin-bottom: 20px;
-    color: white;
+    margin-bottom: 10px;
+    color: #333;
 }
 
 .wheel-header h2 {
-    font-size: 28px;
-    margin-bottom: 10px;
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    margin-bottom: 5px;
+    font-size: 24px;
 }
 
 #game-status {
     font-size: 18px;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    display: inline-block;
+    color: #555;
 }
 
 .wheel-area {
@@ -708,6 +704,29 @@ button:disabled {
     padding: 20px;
     box-sizing: border-box;
     overflow: hidden;
+    transition: background-color 0.5s ease;
+}
+
+/* 轉盤即將停止的視覺效果 */
+.wheel-container.wheel-stopping {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.wheel-container.wheel-stopping::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 70%);
+    animation: pulse-light 0.5s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes pulse-light {
+    from { opacity: 0.2; }
+    to { opacity: 0.5; }
 }
 
 .wheel-svg-container {
@@ -726,20 +745,49 @@ button:disabled {
     position: relative;
     overflow: hidden;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
-    border: 4px solid white;
+    border: 6px solid white;
     background-image: conic-gradient(
-        #FFC107 0% 5%,     /* 傳說: 5% (0°~18°) */
-        #9C27B0 5% 20%,    /* 稀有: 15% (18°~72°) */
-        #2196F3 20% 50%,   /* 高級: 30% (72°~180°) */
-        #4CAF50 50% 100%   /* 普通: 50% (180°~360°) */
+        #FFC107 0% 5%,     /* 傳說: 5% */
+        #9C27B0 5% 20%,    /* 稀有: 15% */
+        #2196F3 20% 50%,   /* 高級: 30% */
+        #4CAF50 50% 100%   /* 普通: 50% */
     );
     display: flex;
     justify-content: center;
     align-items: center;
     transform: rotate(0deg);
     transform-origin: center center;
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
+/* 添加分割線效果 */
+.wheel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(to right, transparent 49.5%, rgba(255,255,255,0.7) 49.5%, rgba(255,255,255,0.7) 50.5%, transparent 50.5%),
+        linear-gradient(to bottom, transparent 49.5%, rgba(255,255,255,0.7) 49.5%, rgba(255,255,255,0.7) 50.5%, transparent 50.5%),
+        conic-gradient(
+            rgba(255,255,255,0.7) 0% 0.5%, 
+            transparent 0.5% 4.5%,
+            rgba(255,255,255,0.7) 4.5% 5.5%, 
+            transparent 5.5% 19.5%,
+            rgba(255,255,255,0.7) 19.5% 20.5%, 
+            transparent 20.5% 49.5%,
+            rgba(255,255,255,0.7) 49.5% 50.5%, 
+            transparent 50.5% 100%
+        );
+    border-radius: 50%;
+    z-index: 5;
+}
+
+/* 輪盤中心 */
 .wheel:after {
     content: '';
     position: absolute;
@@ -752,24 +800,55 @@ button:disabled {
     z-index: 10;
 }
 
-/* 指針固定在頂部 */
+/* 加強指針樣式，使其更為明顯 */
 .wheel-pointer {
     position: absolute;
-    top: -25px;
+    top: -30px; /* 改為頂部定位 */
+    bottom: auto; /* 移除底部位置 */
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%); /* 移除旋轉 */
     width: 0;
     height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: 30px solid #ff3333;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 40px solid #ff3333;
     z-index: 30;
-    filter: drop-shadow(0 0 5px rgba(255, 51, 51, 0.8));
+    filter: drop-shadow(0 0 8px rgba(255, 51, 51, 0.9));
     pointer-events: none;
+    transition: transform 0.3s ease;
+}
+
+/* 指針旁邊添加提示文字 - 調整位置 */
+.wheel-pointer::after {
+    content: '指針';
+    position: absolute;
+    top: -25px; /* 調整至頂部 */
+    bottom: auto; /* 移除底部位置 */
+    left: 50%;
+    transform: translateX(-50%); /* 移除旋轉 */
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+}
+
+/* 轉盤停止時指針輕微振動效果 */
+.wheel-stopping .wheel-pointer {
+    animation: pointer-vibrate-top 0.1s ease-in-out 5;
+}
+
+@keyframes pointer-vibrate-top {
+    0% { transform: translateX(-50%); }
+    25% { transform: translateX(-50%) rotate(5deg); }
+    50% { transform: translateX(-50%); }
+    75% { transform: translateX(-50%) rotate(-5deg); }
+    100% { transform: translateX(-50%); }
 }
 
 .wheel.spinning {
-    animation: spin 2s linear infinite;
+    animation: spin 1.5s linear infinite;
+    will-change: transform;
 }
 
 @keyframes spin {
@@ -779,7 +858,8 @@ button:disabled {
 
 .wheel.slowing-down {
     animation: none;
-    transition: transform 1.5s cubic-bezier(0.33, 1, 0.68, 1);
+    transition: transform 3s cubic-bezier(0.32, 0.94, 0.6, 1);
+    will-change: transform;
 }
 
 /* 轉盤結果區域 */
@@ -791,11 +871,95 @@ button:disabled {
     text-align: center;
     color: white;
     display: none;
+    transform: scale(0.9);
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.wheel-result.result-appear {
+    transform: scale(1);
+    opacity: 1;
 }
 
 .wheel-result p {
     font-size: 20px;
     margin: 10px 0;
+}
+
+/* 稀有和傳說效果 */
+.wheel-result.rarity-effect-3 {
+    box-shadow: 0 0 15px #9C27B0, 0 0 25px #9C27B0;
+    animation: rare-glow 2s ease-in-out;
+}
+
+.wheel-result.rarity-effect-4 {
+    box-shadow: 0 0 20px #FFC107, 0 0 30px #FFC107;
+    animation: legendary-glow 3s ease-in-out;
+}
+
+@keyframes rare-glow {
+    0% { box-shadow: 0 0 15px #9C27B0, 0 0 25px #9C27B0; }
+    50% { box-shadow: 0 0 25px #9C27B0, 0 0 40px #9C27B0; }
+    100% { box-shadow: 0 0 15px #9C27B0, 0 0 25px #9C27B0; }
+}
+
+@keyframes legendary-glow {
+    0% { box-shadow: 0 0 20px #FFC107, 0 0 30px #FFC107; }
+    50% { box-shadow: 0 0 40px #FFC107, 0 0 60px #FFC107; }
+    100% { box-shadow: 0 0 20px #FFC107, 0 0 30px #FFC107; }
+}
+
+/* 轉盤控制區域 */
+.wheel-controls {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+    z-index: 10;
+    transform: translateZ(0);
+    perspective: 1000px;
+}
+
+.btn-secondary {
+    background-color: #777;
+    margin-left: 10px;
+}
+
+.btn-secondary:hover {
+    background-color: #555;
+}
+
+/* 按鈕脈動效果 */
+.wheel-controls button.pulse-effect {
+    animation: button-pulse 1.5s infinite;
+}
+
+@keyframes button-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 67, 54, 0.7);
+        transform: scale(1);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 67, 54, 0);
+        transform: scale(1.05);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 67, 54, 0);
+        transform: scale(1);
+    }
+}
+
+/* 結果按鈕高亮效果 */
+.wheel-result button.highlight-btn {
+    background-color: #4CAF50;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+    transition: all 0.3s ease;
+}
+
+.wheel-result button.highlight-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.15);
 }
 
 /* 轉盤機率說明樣式 */
@@ -807,6 +971,12 @@ button:disabled {
     max-width: 300px;
     color: white;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+.wheel-stopping .rarity-legend {
+    transform: translateY(-5px);
 }
 
 .legend-title {
@@ -821,76 +991,24 @@ button:disabled {
     display: flex;
     align-items: center;
     margin-bottom: 8px;
+    transition: transform 0.2s ease;
+}
+
+.legend-item:hover {
+    transform: translateX(5px);
 }
 
 .legend-color {
-    display: inline-block;
     width: 20px;
     height: 20px;
-    border-radius: 4px;
+    border-radius: 5px;
     margin-right: 10px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .legend-text {
     font-size: 16px;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-.segment-text {
-    display: none;
-}
-
-/* 4個扇形文字位置 */
-.wheel-segment:nth-child(1) .segment-text {
-    top: 50%;
-    left: 50%;
-    transform: translateX(-70%) translateY(-150%);
-}
-
-.wheel-segment:nth-child(2) .segment-text {
-    top: 50%;
-    right: 25%;
-    transform: translateY(-50%);
-}
-
-.wheel-segment:nth-child(3) .segment-text {
-    bottom: 40%;
-    left: 60%;
-}
-
-.wheel-segment:nth-child(4) .segment-text {
-    top: 20%;
-    left: 55%;
-}
-
-/* 修正按鈕樣式，確保它們不影響佈局 */
-.wheel-container button {
-    position: relative;
-    display: inline-block;
-    width: auto;
-    min-width: 120px;
-    margin: 10px;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 5px;
-    background-color: #4CAF50;
-    color: white;
-    font-size: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    transform: translateZ(0);
-    will-change: transform;
-    z-index: 10;
-}
-
-svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-    transform: translateZ(0);
-    aspect-ratio: 1/1;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 /* 新魚特效 */
@@ -1459,22 +1577,166 @@ svg {
     background-color: #0b7dda;
 }
 
-/* 轉盤控制區域 */
-.wheel-controls {
+.rarity-wheel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.wheel-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.wheel-svg-container {
     position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 30px auto 10px;
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    transition: transform 3s cubic-bezier(0.17, 0.67, 0.21, 0.9);
+}
+
+.pointer {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 40px solid #ff3333;
+    z-index: 10;
+    filter: drop-shadow(0 0 5px rgba(255, 51, 51, 0.7));
+}
+
+.wheel-controls {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.spin-button {
+    padding: 12px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    background-color: #ff3333;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    animation: pulse 1.5s infinite;
+}
+
+.spin-button:hover:not(:disabled) {
+    background-color: #e60000;
+    transform: scale(1.05);
+}
+
+.spin-button:disabled {
+    background-color: #777;
+    cursor: not-allowed;
+    animation: none;
+    opacity: 0.7;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 51, 51, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 51, 51, 0);
+    }
+}
+
+.rarity-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.legend-title {
     width: 100%;
     text-align: center;
-    margin-top: 20px;
-    z-index: 10;
-    transform: translateZ(0);
-    perspective: 1000px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: white;
 }
 
-.btn-secondary {
-    background-color: #777;
-    margin-left: 10px;
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 5px 10px;
 }
 
-.btn-secondary:hover {
-    background-color: #555;
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.legend-text {
+    color: white;
+    font-size: 14px;
+}
+
+/* 確保轉盤顯示在中間 */
+.wheel-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.wheel text {
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* 為不同稀有度設置輪廓顏色 */
+.wheel path {
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.wheel path:hover {
+    opacity: 0.9;
+    stroke-width: 3;
+}
+
+/* 優化轉盤容器顯示 */
+#rarity-wheel-app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    max-width: 500px;
 }

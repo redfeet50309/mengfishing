@@ -639,7 +639,7 @@ function directFishing(rarityValue) {
             updateStatusMessage('拉起釣魚線...');
             
             // 短暫延遲後顯示釣到魚
-            setTimeout(() => {
+        setTimeout(() => {
                 fishCaught();
             }, 1000);
         } else {
@@ -746,15 +746,15 @@ function showFishBite() {
     }
     
     // 設定魚逃跑的時間窗口
-    setTimeout(() => {
+        setTimeout(() => {
         console.log('檢查魚是否逃跑，當前狀態:', gameState.status);
-        if (gameState.status === 'bite') {
+            if (gameState.status === 'bite') {
             console.log('魚兒逃跑了');
-            gameState.canCatch = false;
+                gameState.canCatch = false;
             failFishing('魚兒逃跑了！');
-        }
-    }, params.catchWindow);
-}
+            }
+        }, params.catchWindow);
+    }
 
 // 隨機放置魚影
 function positionFishShadow() {
@@ -816,7 +816,7 @@ function reelIn() {
 // 釣到魚
 function fishCaught() {
     // 設置遊戲狀態為成功
-    gameState.status = 'success';
+        gameState.status = 'success';
     
     // 獲取當前釣到的魚
     const fish = gameState.currentFish;
@@ -975,7 +975,7 @@ function resetFishing() {
     // 隱藏釣魚相關元素
     if (elements.fishHook) elements.fishHook.classList.add('hidden');
     if (elements.floatObject) {
-        elements.floatObject.classList.add('hidden');
+    elements.floatObject.classList.add('hidden');
         elements.floatObject.classList.remove('bobbing');
     }
     if (elements.pullBtn) elements.pullBtn.classList.add('hidden');
