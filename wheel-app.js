@@ -23,6 +23,7 @@ const app = Vue.createApp({
     },
     hide() {
       this.isVisible = false;
+      this.resultRarity = null;
       console.log('隱藏輪盤');
     },
     startSpin() {

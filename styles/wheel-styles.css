@@ -12,6 +12,11 @@
   align-items: center;
 }
 
+/* 當有 hidden 類時完全隱藏 */
+.rarity-wheel-modal.hidden {
+  display: none !important;
+}
+
 .rarity-wheel-overlay {
   width: 90%;
   max-width: 500px;
