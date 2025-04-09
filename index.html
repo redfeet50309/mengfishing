@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小濛濛大冒險 - 收集圖鑑</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles/rarity-wheel.css">
+    <link rel="stylesheet" href="styles/wheel-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.js"></script>
-    <link rel="stylesheet" href="styles/rarity-wheel.css">
 </head>
 <body>
     <div class="game-container">
@@ -79,8 +80,8 @@
             <div id="game-status">轉動轉盤決定魚的稀有度！</div>
         </div>
 
-        <div id="rarity-wheel-app" class="wheel-container hidden">
-            <rarity-wheel></rarity-wheel>
+        <div id="rarity-wheel-app" class="wheel-container">
+            <!-- Vue 將在這裡渲染轉盤組件 -->
         </div>
         
         <!-- 魚類圖鑑面板 -->
@@ -148,10 +149,14 @@
         <button id="restart-adventure-btn"><i class="fas fa-redo"></i> 重新開始冒險</button>
     </div>
     
-    <div id="app-container"></div>
+    <!-- 輪盤容器 -->
+    <div id="wheel-container" class="rarity-wheel-modal hidden">
+        <div id="wheel-app"></div>
+    </div>
 
-    <script src="components/RarityWheel.js"></script>
+    <!-- 腳本引入 -->
     <script src="fish-data.js"></script>
+    <script src="wheel-app.js"></script>
     <script src="game-new.js"></script>
 </body>
 </html>

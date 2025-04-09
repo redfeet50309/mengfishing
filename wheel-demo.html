@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>稀有度輪盤展示</title>
+  
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <!-- 自定義樣式 -->
+  <link rel="stylesheet" href="styles/rarity-wheel.css">
+  
+  <style>
+    body {
+      font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    
+    .controls {
+      margin: 20px 0;
+    }
+    
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s;
+      margin: 0 10px;
+    }
+    
+    button:hover {
+      background: #45a049;
+    }
+    
+    .footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 20px;
+      background: #333;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>稀有度輪盤示範</h1>
+    
+    <div id="wheel-app">
+      <!-- 控制按鈕 -->
+      <div class="controls">
+        <button @click="showWheel">顯示輪盤</button>
+        <button @click="hideWheel">隱藏輪盤</button>
+      </div>
+      
+      <!-- 稀有度輪盤組件 -->
+      <rarity-wheel 
+        :visible="isWheelVisible" 
+        @result="handleResult"
+      ></rarity-wheel>
+    </div>
+  </div>
+  
+  <div class="footer">
+    &copy; 2023 稀有度輪盤展示
+  </div>
+  
+  <!-- 組件 -->
+  <script type="module" src="components/RarityWheel.js"></script>
+  <!-- 應用入口 -->
+  <script type="module" src="wheel-app.js"></script>
+</body>
+</html> 
