@@ -99,6 +99,11 @@ const RarityWheelComponentDefinition = {
       if (highlightTimeoutId.value) {
         clearTimeout(highlightTimeoutId.value);
         highlightTimeoutId.value = null;
+        // Roo: Also cancel any lingering animation frame from previous spins
+        if (animationId.value) {
+            cancelAnimationFrame(animationId.value);
+            animationId.value = null;
+        }
       }
 
       // 先找到對應稀有度的段落
@@ -106,11 +111,21 @@ const RarityWheelComponentDefinition = {
       if (!targetSegment) return;
       
       // 計算目標角度 (段落中點)
-      const targetAngle = (targetSegment.startAngle + targetSegment.endAngle) / 2;
-      
-      // 加上多轉幾圈的效果 (3-5圈)
+      const targetSegmentAngle = (targetSegment.startAngle + targetSegment.endAngle) / 2;
+
+      // Roo: 修正目標旋轉角度計算
+      // 目標是將輪盤上 targetSegmentAngle 的位置旋轉到頂部指針 (0 度)
+      // CSS transform: rotate(R) 會順時針旋轉 R 度。
+      // 我們需要計算 R，使得 targetSegmentAngle 旋轉 R 度後到達 0 度。
+      // targetSegmentAngle + R = 0 (mod 360)  => R = -targetSegmentAngle (mod 360)
+      const finalAngle = (360 - targetSegmentAngle) % 360; // 確保最終停止時 targetSegmentAngle 對準 0 度
+
+      // 加上多轉幾圈的效果 (至少 3 圈，最多 5 圈)
       const extraSpins = 3 + Math.floor(Math.random() * 3);
-      targetRotation.value = 360 * extraSpins + targetAngle;
+      // 總旋轉角度 = 完整圈數 + 將目標角度轉到 0 度的角度
+      targetRotation.value = 360 * extraSpins + finalAngle;
+
+      console.log(`[RarityWheel] Spinning to ${rarityName}. Segment: ${targetSegment.startAngle}°-${targetSegment.endAngle}°. Midpoint: ${targetSegmentAngle}°. Target Rotation: ${targetRotation.value}° (Final angle part: ${finalAngle}°)`);
       
       // 開始動畫
       startSpinAnimation();
@@ -122,6 +137,8 @@ const RarityWheelComponentDefinition = {
       console.log('[RarityWheel] Starting spin animation, wheelRef:', wheelRef.value);
       spinComplete.value = false; // Roo: Reset spin complete flag
       clearHighlight(); // Roo: Clear highlight when starting spin
+      // Roo: Reset rotation to current visual modulo 360 as the new start point
+      rotation.value = rotation.value % 360;
 
       // 確定當前位置和目標位置
       const startRotation = rotation.value % 360;
@@ -245,8 +262,9 @@ const RarityWheelComponentDefinition = {
         highlightTimeoutId.value = null; // Ensure it's nullified
       }
       
-      // Roo: Optional: Explicitly clear the ref (might help prevent race conditions)
+      // Roo: Optional: Explicitly clear the ref and reset rotation
       // wheelRef.value = null;
+      rotation.value = 0; // Reset rotation on unmount
       // console.log('[RarityWheel] Explicitly set wheelRef to null');
     });
     

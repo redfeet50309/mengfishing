@@ -21,7 +21,7 @@
   width: 90%;
   max-width: 500px;
   /* background-color: rgba(40, 40, 40, 0.95); */
-  background: linear-gradient(145deg, rgba(60, 60, 70, 0.95), rgba(30, 30, 40, 0.98));
+  background: linear-gradient(145deg, rgba(40, 50, 70, 0.95), rgba(20, 25, 35, 0.98)); /* 深藍調 */
   border-radius: 20px; /* Slightly larger radius */
   padding: 30px; /* More padding */
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); /* Deeper shadow */
@@ -65,11 +65,11 @@
   border-radius: 50%;
   position: relative;
   /* border: 5px solid #333; */
-  border: 8px solid transparent; /* Make space for gradient border */
-  background-image: linear-gradient(white, white), conic-gradient(from 90deg, #ffd700, #f0c040, #e0a830, #c08020, #a06010, #804000, #a06010, #c08020, #e0a830, #f0c040, #ffd700); /* Gold gradient border */
+  border: 8px solid transparent; /* Roo: Restore border */
+  background-image: linear-gradient(white, white), conic-gradient(from 90deg, #ffd700, #f0c040, #e0a830, #c08020, #a06010, #804000, #a06010, #c08020, #e0a830, #f0c040, #ffd700); /* Roo: Restore border background */
   background-origin: border-box;
   background-clip: content-box, border-box;
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.3); /* Adjusted shadow */
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.3); /* Roo: Restore shadow */
   overflow: hidden;
   transform: rotate(0deg);
   transition: transform 0.1s linear;
@@ -134,34 +134,26 @@
 /* Roo: Enhanced Wheel Pointer Style */
 .wheel-pointer {
   position: absolute;
-  top: -15px; /* Move further up */
+  top: 31px;  /* Roo: Adjust pointer UP by 5px based on user feedback */
   left: 50%;
   transform: translateX(-50%);
   width: 24px; /* Even narrower */
-  height: 40px; /* Slightly shorter */
+  height: 30px; /* Match pointer shape height for simplicity */
   z-index: 10;
+  /* position: absolute; is already inherited or set earlier */
 }
 
 /* Roo: Separate pointer shape and base for better styling */
 .wheel-pointer .pointer {
   width: 100%;
-  height: 30px; /* Main pointer part */
+  height: 30px; /* Restore original pointer height */
   background: linear-gradient(180deg, #ff4d4d, #cc0000); /* Sharper red gradient */
   clip-path: polygon(50% 100%, 0 0, 100% 0); /* Pointing down */
   filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.7));
+  /* Roo: Ensure no transform is applied here */
 }
 
-.wheel-pointer .pointer-base {
-  width: 16px; /* Smaller base */
-  height: 10px; /* Base height */
-  background-color: #a0a0a0; /* Darker grey base */
-  border-radius: 50%;
-  position: absolute;
-  bottom: -5px; /* Position below the pointer tip */
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
-}
+/* Roo: Removed pointer-base styles as the element will be removed */
 
 .spin-button {
   padding: 12px 30px; /* Wider padding */
@@ -186,7 +178,7 @@
 }
 
 .spin-button:disabled {
-  background: #90a4ae; /* Keep original disabled color */
+  background: #B0BEC5; /* 淺灰藍禁用按鈕 */
   cursor: not-allowed;
   transform: none;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); /* Add inset shadow for disabled state */

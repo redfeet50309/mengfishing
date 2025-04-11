@@ -25,16 +25,16 @@
             <div class="environment-title">釣魚環境：</div>
             <div class="environment-options">
                 <button class="environment-btn active" data-environment="沿岸">
-                    <i class="fas fa-water"></i> 沿岸
+                    <i class="fas fa-water"></i> 沿岸 <span class="env-count"></span>
                 </button>
                 <button class="environment-btn" data-environment="海水">
-                    <i class="fas fa-ship"></i> 海水
+                    <i class="fas fa-ship"></i> 海水 <span class="env-count"></span>
                 </button>
                 <button class="environment-btn" data-environment="淡水">
-                    <i class="fas fa-stream"></i> 淡水
+                    <i class="fas fa-stream"></i> 淡水 <span class="env-count"></span>
                 </button>
                 <button class="environment-btn" data-environment="湖泊">
-                    <i class="fas fa-water"></i> 湖泊
+                    <i class="fas fa-water"></i> 湖泊 <span class="env-count"></span>
                 </button>
             </div>
         </div>
@@ -163,7 +163,7 @@
         <div class="rarity-wheel-container">
           <div class="rarity-wheel-area">
             <div class="rarity-wheel" ref="wheelRef" :style="{ transform: 'rotate(' + rotation + 'deg)' }">
-              <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                 <g>
                   <path
                     v-for="(path, index) in segmentPaths"
@@ -175,23 +175,7 @@
                     :class="{ 'highlight-segment': segments[index].isHighlighted }"
                   />
                   
-                  <!-- 稀有度標籤 -->
-                  <!-- Roo: Enhanced Text Labeling -->
-                  <text
-                    v-for="(segment, index) in segments"
-                    :key="'text-' + segment.name + '-' + index"
-                    :x="150 + 115 * Math.cos((segment.startAngle + segment.endAngle) / 2 * Math.PI / 180 - Math.PI / 2)"
-                    :y="150 + 115 * Math.sin((segment.startAngle + segment.endAngle) / 2 * Math.PI / 180 - Math.PI / 2)"
-                    text-anchor="middle"
-                    dominant-baseline="middle"
-                    fill="white"
-                    font-weight="bold"
-                    font-size="13"
-                    :transform="`rotate(${(segment.startAngle + segment.endAngle) / 2}, 150, 150)`"
-                    class="wheel-segment-label"
-                  >
-                    {{ segment.name }}
-                  </text>
+                  <!-- Roo: Removed text labels as requested -->
                 </g>
               </svg>
             </div>
@@ -199,7 +183,7 @@
             <!-- 指針 -->
             <div class="wheel-pointer">
               <div class="pointer"></div>
-              <div class="pointer-base"></div>
+              <!-- Roo: Removed pointer-base div -->
             </div>
           </div>
           

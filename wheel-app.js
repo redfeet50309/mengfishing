@@ -8,23 +8,38 @@ const app = Vue.createApp({
       isVisible: false,
       isSpinning: false,
       resultRarity: null,
+      hideTimeoutId: null, // Roo: Add state to store hide timer ID
       rarities: [
-        { name: '普通', color: '#7E8287', probability: 0.60 },
-        { name: '進階', color: '#45AAFF', probability: 0.25 },
-        { name: '稀有', color: '#FF6B8E', probability: 0.10 },
-        { name: '傳說', color: '#FFD700', probability: 0.05 }
+        { name: '普通', color: '#81C784', probability: 0.60 }, // 淺綠色
+        { name: '進階', color: '#64B5F6', probability: 0.25 }, // 柔和藍
+        { name: '稀有', color: '#E57373', probability: 0.10 }, // 柔和紅
+        { name: '傳說', color: '#FFB74D', probability: 0.05 }  // 橘黃色
       ]
     };
   },
   methods: {
     show() {
+      // Roo: Clear any pending hide timer before showing
+      if (this.hideTimeoutId) {
+        clearTimeout(this.hideTimeoutId);
+        this.hideTimeoutId = null;
+        console.log('[WheelApp] Cleared pending hide timer.');
+      }
       this.isVisible = true;
-      console.log('顯示輪盤');
+      this.isSpinning = false; // Roo: Ensure spinning is reset when shown
+      this.resultRarity = null; // Roo: Ensure result is reset when shown
+      console.log('[WheelApp] Showing wheel.');
     },
     hide() {
       this.isVisible = false;
       this.resultRarity = null;
-      console.log('隱藏輪盤');
+      this.isSpinning = false; // Roo: Ensure spinning is false when hidden
+      // Roo: Clear timer if hide is called directly
+      if (this.hideTimeoutId) {
+        clearTimeout(this.hideTimeoutId);
+        this.hideTimeoutId = null;
+      }
+      console.log('[WheelApp] Hiding wheel.');
     },
     startSpin() {
       if (this.isSpinning) return;
@@ -49,22 +64,39 @@ const app = Vue.createApp({
       }
     },
     handleSpinComplete(result) {
-      console.log('旋轉完成:', result);
+      // Roo: Add detailed logging for debugging consistency
+      console.log('[WheelApp] Spin animation complete. Visual Result:', result);
+      // Roo: Compare calculated rarity with visual result
+      console.log('[WheelApp] Calculated Rarity (from startSpin):', this.resultRarity);
+      console.log('[WheelApp] Visual Result (from component):', result);
+      if (this.resultRarity !== result) {
+          console.warn('[WheelApp] MISMATCH DETECTED between calculated rarity and visual result!');
+      }
+      console.log('[WheelApp] Current isSpinning state:', this.isSpinning); // Should be true before setting false
       this.isSpinning = false;
-      
+      console.log('[WheelApp] isSpinning set to false.');
+
       // 通知遊戲邏輯
       if (typeof window.handleRarityResult === 'function') {
-        window.handleRarityResult(result);
+        console.log('[WheelApp] Calling window.handleRarityResult with:', result);
+        window.handleRarityResult(result); // This is where the external logic takes over
+        console.log('[WheelApp] Returned from window.handleRarityResult.');
+      } else {
+        console.warn('[WheelApp] window.handleRarityResult function not found.');
       }
-      
+
       // 延遲隱藏輪盤
-      setTimeout(() => {
+      console.log('[WheelApp] Scheduling wheel hide in 2 seconds.');
+      // Roo: Store the timeout ID
+      this.hideTimeoutId = setTimeout(() => {
+        console.log('[WheelApp] Hiding wheel via timer.');
         this.hide();
+        this.hideTimeoutId = null; // Roo: Clear the ID after execution
       }, 2000);
     }
   },
   template: `
-    <div v-if="isVisible" class="rarity-wheel-overlay">
+    <div v-show="isVisible" class="rarity-wheel-overlay">
       <div class="rarity-wheel-container">
         <h2 class="rarity-wheel-title">釣魚稀有度</h2>
         <rarity-wheel
@@ -97,6 +129,15 @@ window.RarityWheelApp = {
     const vm = app._instance?.proxy;
     if (vm) {
       vm.hide();
+    }
+  },
+  // Roo: Add startSpin to the global API
+  startSpin() {
+    const vm = app._instance?.proxy;
+    if (vm && typeof vm.startSpin === 'function') {
+      vm.startSpin();
+    } else {
+      console.error('[WheelApp API] Cannot call startSpin. Vue instance or method not found.');
     }
   }
 };

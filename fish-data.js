@@ -73,7 +73,7 @@ const defaultFishSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200
 const defaultFishImage = createSvgDataUrl(defaultFishSvg);
 window.defaultFishImage = defaultFishImage;
 
-const fishDatabase = [
+window.fishDatabase = [ // Roo: Explicitly attach to window scope
     // 沙灘環境 - 20種魚 (Roo: Changed environment name)
     {
         id: 1,
@@ -81,7 +81,7 @@ const fishDatabase = [
         description: "色彩鮮豔的金魚，在清晨的沙灘水域特別活躍。", // Roo: Updated description
         image: createSvgDataUrl(fish1Svg),
         rarity: 1, // 普通
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name to match HTML/game-new.js
         times: ["早上"],
         probability: 5.86
     },
@@ -91,7 +91,7 @@ const fishDatabase = [
         description: "中午時分在沙灘出沒的普通旗魚，游速適中。", // Roo: Updated description
         image: createSvgDataUrl(fish2Svg),
         rarity: 1, // 普通
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["中午"],
         probability: 10.65
     },
@@ -101,7 +101,7 @@ const fishDatabase = [
         description: "早上在沙灘活動的石斑魚，體型圓潤可愛。", // Roo: Updated description
         image: createSvgDataUrl(fish3Svg),
         rarity: 1,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 5.41
     },
@@ -111,7 +111,7 @@ const fishDatabase = [
         description: "夜間沙灘常見的鰻魚，觸感柔軟滑溜。", // Roo: Updated description
         image: createSvgDataUrl(fish4Svg),
         rarity: 1,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["晚上"],
         probability: 12.77
     },
@@ -121,7 +121,7 @@ const fishDatabase = [
         description: "晚上在沙灘出沒的鯰魚，有著可愛的長鬍鬚。", // Roo: Updated description
         image: createSvgDataUrl(fish5Svg),
         rarity: 1,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["晚上"],
         probability: 13.60
     },
@@ -131,7 +131,7 @@ const fishDatabase = [
         description: "中午時分在沙灘覓食的柳葉魚，肉質鮮嫩。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%2300BFFF"/><path d="M40,100 C65,80 135,80 160,100 C135,120 65,120 40,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="65" cy="95" r="5" fill="black"/><path d="M30,100 L40,100 M160,100 L170,100" stroke="white" stroke-width="3" stroke-linecap="round"/><text x="100" y="115" font-family="Arial" font-size="14" text-anchor="middle" fill="white">嫩嫩柳葉魚</text></svg>`,
         rarity: 1,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["中午"],
         probability: 13.98
     },
@@ -141,7 +141,7 @@ const fishDatabase = [
         description: "中午在沙灘游動的魟魚，身體彈性十足。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%239C27B0"/><ellipse cx="100" cy="100" rx="60" ry="40" fill="white" stroke="black" stroke-width="2"/><circle cx="80" cy="90" r="5" fill="black"/><circle cx="120" cy="90" r="5" fill="black"/><path d="M100,110 C90,120 110,120 100,110" stroke="black" fill="none"/><path d="M100,60 L100,30 M70,70 L50,50 M130,70 L150,50" stroke="white" stroke-width="2"/><text x="100" y="140" font-family="Arial" font-size="14" text-anchor="middle" fill="white">QQ魟魚</text></svg>`,
         rarity: 1,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["中午"],
         probability: 6.98
     },
@@ -151,7 +151,7 @@ const fishDatabase = [
         description: "夜晚在沙灘悠游的劍魚，嘴部的劍還很嫩。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%233F51B5"/><path d="M50,100 C70,80 130,80 150,100 C130,120 70,120 50,100 Z" fill="white" stroke="black" stroke-width="2"/><path d="M50,100 L20,100" stroke="white" stroke-width="5" stroke-linecap="round"/><circle cx="80" cy="90" r="5" fill="black"/><text x="110" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="white">嫩嫩劍魚</text></svg>`,
         rarity: 1,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["晚上"],
         probability: 7.03
     },
@@ -161,7 +161,7 @@ const fishDatabase = [
         description: "早上在沙灘游動的龍魚，有波浪般的鰭。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23F44336"/><path d="M30,100 C50,60 150,60 170,100 C150,140 50,140 30,100 Z" fill="white" stroke="gold" stroke-width="3"/><circle cx="60" cy="85" r="6" fill="black"/><path d="M30,100 L10,80 M30,100 L10,120" stroke="gold" stroke-width="3" stroke-linecap="round"/><path d="M90,60 L100,40 M110,60 L120,40 M90,140 L100,160 M110,140 L120,160" stroke="gold" stroke-width="2"/><text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="black">波波龍魚</text></svg>`,
         rarity: 2,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 7.54
     },
@@ -171,7 +171,7 @@ const fishDatabase = [
         description: "早上在沙灘活動的比目魚，身體特別圓潤。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%239C27B0"/><ellipse cx="100" cy="100" rx="60" ry="30" fill="white" stroke="black" stroke-width="2"/><circle cx="75" cy="85" r="5" fill="black"/><circle cx="90" cy="85" r="5" fill="black"/><path d="M120,90 C130,95 140,95 150,90" stroke="black" fill="none"/><text x="100" y="120" font-family="Arial" font-size="14" text-anchor="middle" fill="white">圓圓比目魚</text></svg>`,
         rarity: 2,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 5.42
     },
@@ -181,7 +181,7 @@ const fishDatabase = [
         description: "晚上在沙灘覓食的河豚，摸起來特別柔軟。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23795548"/><circle cx="100" cy="100" r="40" fill="white" stroke="black" stroke-width="2"/><circle cx="80" cy="90" r="5" fill="black"/><path d="M100,60 L100,45 M70,70 L60,55 M130,70 L140,55 M70,130 L60,145 M130,130 L140,145 M100,140 L100,155" stroke="white" stroke-width="2" stroke-linecap="round"/><text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="black">軟軟河豚</text></svg>`,
         rarity: 2,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["晚上"],
         probability: 5.78
     },
@@ -191,7 +191,7 @@ const fishDatabase = [
         description: "中午在沙灘出沒的燈籠魚，散發著甜甜的光芒。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23000000"/><path d="M60,100 C80,80 120,80 140,100 C120,120 80,120 60,100 Z" fill="%23444444" stroke="%23FFEB3B" stroke-width="2"/><circle cx="80" cy="90" r="5" fill="%23FFEB3B"/><circle cx="80" cy="90" r="15" fill="none" stroke="%23FFEB3B" stroke-width="1" opacity="0.5"/><circle cx="80" cy="90" r="25" fill="none" stroke="%23FFEB3B" stroke-width="1" opacity="0.3"/><path d="M140,100 L160,100" stroke="%23FFEB3B" stroke-width="2"/><text x="100" y="110" font-family="Arial" font-size="14" text-anchor="middle" fill="%23FFEB3B">甜甜燈籠魚</text></svg>`,
         rarity: 2,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["中午"],
         probability: 3.59
     },
@@ -201,7 +201,7 @@ const fishDatabase = [
         description: "晚上在沙灘游動的青魚，鰭捲捲的非常可愛。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%2300BFFF"/><path d="M40,100 C65,80 135,80 160,100 C135,120 65,120 40,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="65" cy="95" r="5" fill="black"/><path d="M30,100 L40,100 M160,100 L170,100" stroke="white" stroke-width="3" stroke-linecap="round"/><path d="M90,80 Q100,70 110,80 M90,120 Q100,130 110,120" stroke="%2300BFFF" stroke-width="2"/><text x="100" y="115" font-family="Arial" font-size="14" text-anchor="middle" fill="white">小捲捲青魚</text></svg>`,
         rarity: 2,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["晚上"],
         probability: 3.30
     },
@@ -211,7 +211,7 @@ const fishDatabase = [
         description: "早上在沙灘冒泡泡的小魚，鰭像捲捲的紙。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%230288D1"/><path d="M60,100 C70,85 130,85 140,100 C130,115 70,115 60,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="80" cy="95" r="4" fill="black"/><path d="M140,100 L155,100" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="160" cy="90" r="5" fill="white"/><circle cx="170" cy="80" r="3" fill="white"/><path d="M90,85 Q95,75 100,85 M90,115 Q95,125 100,115" stroke="%230288D1" stroke-width="2"/><text x="95" y="105" font-family="Arial" font-size="12" text-anchor="middle" fill="black">小捲捲泡泡魚</text></svg>`,
         rarity: 2,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 5.22
     },
@@ -221,7 +221,7 @@ const fishDatabase = [
         description: "早上在沙灘的蝦虎魚，身體滑溜難以抓住。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23004D40"/><path d="M50,100 C70,80 130,80 150,100 C130,120 70,120 50,100 Z" fill="%23009688" stroke="black" stroke-width="2"/><circle cx="70" cy="90" r="5" fill="black"/><path d="M50,100 L30,90 M50,100 L30,110" stroke="%2380CBC4" stroke-width="2" stroke-linecap="round"/><path d="M110,80 L120,60 M110,120 L120,140" stroke="%2380CBC4" stroke-width="2"/><text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="white">滑滑蝦虎魚</text></svg>`,
         rarity: 3,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 1.89
     },
@@ -231,7 +231,7 @@ const fishDatabase = [
         description: "中午在沙灘表面跳躍的飛魚，鰭如波浪般美麗。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%231976D2"/><path d="M40,100 C60,85 140,85 160,100 C140,115 60,115 40,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="65" cy="95" r="5" fill="black"/><path d="M100,85 L120,50 M100,115 L120,150" stroke="%231976D2" stroke-width="8" stroke-linecap="round"/><path d="M40,100 L20,100" stroke="white" stroke-width="3" stroke-linecap="round"/><text x="95" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="black">波波飛魚</text></svg>`,
         rarity: 3,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["中午"],
         probability: 2.42
     },
@@ -241,7 +241,7 @@ const fishDatabase = [
         description: "晚上在沙灘出沒的刺魚，身上的刺像波浪一樣起伏。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23FF5722"/><path d="M60,100 C80,85 120,85 140,100 C120,115 80,115 60,100 Z" fill="white" stroke="black" stroke-width="2"/><circle cx="80" cy="95" r="5" fill="black"/><path d="M60,85 L50,70 M80,80 L70,65 M100,80 L100,65 M120,80 L130,65 M60,115 L50,130 M80,120 L70,135 M100,120 L100,135 M120,120 L130,135" stroke="%23FF5722" stroke-width="2" stroke-linecap="round"/><text x="100" y="105" font-family="Arial" font-size="14" text-anchor="middle" fill="black">波波刺魚</text></svg>`,
         rarity: 3,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["晚上"],
         probability: 1.40
     },
@@ -251,7 +251,7 @@ const fishDatabase = [
         description: "早上在沙灘聚集的沙丁魚，身體滑溜閃亮。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%2303A9F4"/><path d="M60,100 C75,90 125,90 140,100 C125,110 75,110 60,100 Z" fill="silver" stroke="black" stroke-width="1"/><circle cx="75" cy="97" r="3" fill="black"/><path d="M140,100 L150,100" stroke="silver" stroke-width="2" stroke-linecap="round"/><path d="M100,90 L100,85 M100,110 L100,115" stroke="white" stroke-width="1"/><text x="100" y="105" font-family="Arial" font-size="12" text-anchor="middle" fill="black">滑滑沙丁魚</text></svg>`,
         rarity: 3,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 1.30
     },
@@ -261,7 +261,7 @@ const fishDatabase = [
         description: "早上在沙灘岩石間的海馬，身體滑滑的很難捉。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%230097A7"/><path d="M120,60 C140,70 140,100 120,110 C100,120 100,150 100,170" fill="none" stroke="%239C27B0" stroke-width="10" stroke-linecap="round"/><circle cx="125" cy="70" r="4" fill="black"/><path d="M120,60 C110,50 100,60 110,70" fill="none" stroke="%239C27B0" stroke-width="10" stroke-linecap="round"/><path d="M100,170 C95,180 105,180 100,170" fill="none" stroke="%239C27B0" stroke-width="7"/><text x="90" y="120" font-family="Arial" font-size="14" text-anchor="middle" fill="white">滑滑海馬</text></svg>`,
         rarity: 4,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["早上"],
         probability: 0.33
     },
@@ -271,7 +271,7 @@ const fishDatabase = [
         description: "中午在沙灘覓食的章魚，觸手彈性十足，非常Q彈。", // Roo: Updated description
         image: `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23880E4F"/><circle cx="100" cy="80" r="30" fill="%23E91E63" stroke="black" stroke-width="2"/><circle cx="90" cy="75" r="5" fill="black"/><circle cx="110" cy="75" r="5" fill="black"/><path d="M80,100 Q70,120 60,150 M90,105 Q80,130 75,160 M110,105 Q120,130 125,160 M120,100 Q130,120 140,150" stroke="%23E91E63" stroke-width="6" stroke-linecap="round"/><text x="100" y="50" font-family="Arial" font-size="14" text-anchor="middle" fill="white">QQ章魚</text></svg>`,
         rarity: 4,
-        environments: ["沙灘"], // Roo: Changed environment name
+        environments: ["沿岸"], // Roo: Corrected environment name
         times: ["中午"],
         probability: 0.36
     },
@@ -884,7 +884,7 @@ const fishDatabase = [
 ];
 
 // 環境與時間設定
-const environments = ["沙灘", "海水", "淡水", "湖泊"]; // Roo: Changed "沿岸" to "沙灘"
+const environments = ["沿岸", "海水", "淡水", "湖泊"]; // Roo: Corrected environment name
 const timePeriods = ["早上", "中午", "晚上"];
 
 // 根據環境和時間篩選魚類

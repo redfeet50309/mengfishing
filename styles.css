@@ -683,7 +683,7 @@ button:disabled {
     width: 300px;
     height: 300px;
     margin: 0 auto;
-    perspective: 1000px;
+    perspective: 1000px; /* Roo: Restore 3D properties */
     transform-style: preserve-3d;
     backface-visibility: hidden;
     will-change: transform;
@@ -805,13 +805,14 @@ button:disabled {
     z-index: 10;
 }
 
-/* 加強指針樣式，使其更為明顯 */
+/* 加強指針樣式，使其更為明顯 (Roo: Commented out conflicting styles from global CSS) */
+/*
 .wheel-pointer {
     position: absolute;
-    top: -30px; /* 改為頂部定位 */
-    bottom: auto; /* 移除底部位置 */
+    top: -30px;
+    bottom: auto;
     left: 50%;
-    transform: translateX(-50%); /* 移除旋轉 */
+    transform: translateX(-50%);
     width: 0;
     height: 0;
     border-left: 20px solid transparent;
@@ -822,21 +823,24 @@ button:disabled {
     pointer-events: none;
     transition: transform 0.3s ease;
 }
+*/
 
-/* 指針旁邊添加提示文字 - 調整位置 */
+/* 指針旁邊添加提示文字 - 調整位置 (Roo: Commented out conflicting styles from global CSS) */
+/*
 .wheel-pointer::after {
     content: '指針';
     position: absolute;
-    top: -25px; /* 調整至頂部 */
-    bottom: auto; /* 移除底部位置 */
+    top: -25px;
+    bottom: auto;
     left: 50%;
-    transform: translateX(-50%); /* 移除旋轉 */
+    transform: translateX(-50%);
     color: white;
     font-size: 14px;
     font-weight: bold;
     text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
     white-space: nowrap;
 }
+*/
 
 /* 轉盤停止時指針輕微振動效果 */
 .wheel-stopping .wheel-pointer {
@@ -1135,6 +1139,21 @@ button:disabled {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Roo: Style for environment count */
+.env-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #dc3545; /* Red background */
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px;
+    line-height: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
 /* 環境進度顯示 */
 .env-progress {
     position: absolute;
@@ -1205,181 +1224,42 @@ button:disabled {
     font-style: italic;
 }
 
-/* 時間相關背景樣式 */
-.fishing-area.morning {
-    background-image: linear-gradient(to bottom, #87ceeb, #4dc7ff);
-}
+/* Roo: Removed direct background styles on .fishing-area.
+   Backgrounds will be controlled by .sky and .water elements based on environment/time classes on .fishing-area. */
 
-.fishing-area.noon {
-    background-image: linear-gradient(to bottom, #5d9ee3, #1e88e5);
-}
+/* Roo: Simplified Environment and Time Visual Effects */
+/* Default/Coastal Sky & Water */
+.fishing-area .sky { background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 100%); transition: background 0.5s ease; }
+.fishing-area .water { background: linear-gradient(180deg, #4682B4 0%, #20B2AA 70%, #F5DEB3 100%); transition: background 0.5s ease; }
 
-.fishing-area.evening {
-    background-image: linear-gradient(to bottom, #4a5568, #2d3748);
-}
+/* Time Variations (affect all environments unless overridden) */
+.fishing-area.morning .sky { background: linear-gradient(180deg, #a1d4f0 0%, #cce8f3 100%); } /* Lighter morning */
+.fishing-area.noon .sky { background: linear-gradient(180deg, #5bb1e6 0%, #a1d4f0 100%); } /* Brighter noon */
+.fishing-area.evening .sky { background: linear-gradient(180deg, #2c3e50 0%, #465a70 100%); } /* Darker evening */
 
-/* 環境相關背景樣式 */
-.fishing-area.coastal {
-    background-image: linear-gradient(to bottom, var(--bg-top, #87ceeb), var(--bg-bottom, #4da6ff));
-    --bg-top: #87ceeb;
-    --bg-bottom: #4da6ff;
-}
+.fishing-area.morning .water { filter: brightness(1.05); }
+.fishing-area.noon .water { filter: brightness(1.1); }
+.fishing-area.evening .water { filter: brightness(0.7); }
 
-.fishing-area.coastal.morning {
-    --bg-top: #87ceeb;
-    --bg-bottom: #4da6ff;
-}
+/* Environment Specific Backgrounds (Overrides default/coastal and time variations) */
 
-.fishing-area.coastal.noon {
-    --bg-top: #5d9ee3;
-    --bg-bottom: #1e88e5;
-}
+/* 海水 */
+.fishing-area.sea .sky { background: linear-gradient(180deg, #63a4ff 0%, #8ec5fc 100%); }
+.fishing-area.sea .water { background: linear-gradient(180deg, #005c97 0%, #363795 80%, #1a1a5c 100%); }
+.fishing-area.sea.evening .sky { background: linear-gradient(180deg, #1a2a6c 0%, #3e517a 100%); }
+.fishing-area.sea.evening .water { background: linear-gradient(180deg, #003049 0%, #111827 80%, #0c0d1f 100%); filter: brightness(0.6); }
 
-.fishing-area.coastal.evening {
-    --bg-top: #4a5568;
-    --bg-bottom: #2d3748;
-}
+/* 淡水 */
+.fishing-area.freshwater .sky { background: linear-gradient(180deg, #a8e063 0%, #d9f7b1 100%); }
+.fishing-area.freshwater .water { background: linear-gradient(180deg, #56ab2f 0%, #a8e063 70%, #3a7d44 100%); }
+.fishing-area.freshwater.evening .sky { background: linear-gradient(180deg, #3a5a40 0%, #588157 100%); }
+.fishing-area.freshwater.evening .water { background: linear-gradient(180deg, #283618 0%, #3a5a40 70%, #1e2d14 100%); filter: brightness(0.65); }
 
-.fishing-area.sea {
-    --bg-top: #0077be;
-    --bg-bottom: #005f9e;
-}
-
-.fishing-area.sea.morning {
-    --bg-top: #0077be;
-    --bg-bottom: #005f9e;
-}
-
-.fishing-area.sea.noon {
-    --bg-top: #00569e;
-    --bg-bottom: #00417a;
-}
-
-.fishing-area.sea.evening {
-    --bg-top: #003366;
-    --bg-bottom: #001a33;
-}
-
-.fishing-area.freshwater {
-    --bg-top: #7cbb00;
-    --bg-bottom: #5c8a00;
-}
-
-.fishing-area.freshwater.morning {
-    --bg-top: #7cbb00;
-    --bg-bottom: #5c8a00;
-}
-
-.fishing-area.freshwater.noon {
-    --bg-top: #65a30d;
-    --bg-bottom: #4d7c0f;
-}
-
-.fishing-area.freshwater.evening {
-    --bg-top: #3f6212;
-    --bg-bottom: #365314;
-}
-
-.fishing-area.lake {
-    --bg-top: #4f98ca;
-    --bg-bottom: #3a7ca5;
-}
-
-.fishing-area.lake.morning {
-    --bg-top: #4f98ca;
-    --bg-bottom: #3a7ca5;
-}
-
-.fishing-area.lake.noon {
-    --bg-top: #3a7ca5;
-    --bg-bottom: #2c5d7d;
-}
-
-.fishing-area.lake.evening {
-    --bg-top: #2c5d7d;
-    --bg-bottom: #1e3d53;
-}
-
-/* 環境和時間視覺效果 */
-.fishing-area.morning .sky {
-    background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 100%);
-}
-
-.fishing-area.noon .sky {
-    background: linear-gradient(180deg, #1E90FF 0%, #87CEEB 100%);
-}
-
-.fishing-area.evening .sky {
-    background: linear-gradient(180deg, #191970 0%, #4B0082 100%);
-}
-
-/* 沿岸環境 */
-.fishing-area.coastal .water {
-    background: linear-gradient(180deg, #4682B4 0%, #20B2AA 70%, #F5DEB3 100%);
-}
-
-.fishing-area.coastal.morning {
-    background: linear-gradient(180deg, #87CEEB 0%, #ADD8E6 100%);
-}
-
-.fishing-area.coastal.noon {
-    background: linear-gradient(180deg, #00BFFF 0%, #1E90FF 100%);
-}
-
-.fishing-area.coastal.evening {
-    background: linear-gradient(180deg, #191970 0%, #4B0082 100%);
-}
-
-/* 海水環境 */
-.fishing-area.sea .water {
-    background: linear-gradient(180deg, #0000CD 0%, #00008B 80%, #191970 100%);
-}
-
-.fishing-area.sea.morning {
-    background: linear-gradient(180deg, #87CEEB 0%, #1E90FF 100%);
-}
-
-.fishing-area.sea.noon {
-    background: linear-gradient(180deg, #00BFFF 0%, #0000FF 100%);
-}
-
-.fishing-area.sea.evening {
-    background: linear-gradient(180deg, #191970 0%, #000080 100%);
-}
-
-/* 淡水環境 */
-.fishing-area.freshwater .water {
-    background: linear-gradient(180deg, #20B2AA 0%, #008080 70%, #2F4F4F 100%);
-}
-
-.fishing-area.freshwater.morning {
-    background: linear-gradient(180deg, #87CEEB 0%, #66CDAA 100%);
-}
-
-.fishing-area.freshwater.noon {
-    background: linear-gradient(180deg, #00BFFF 0%, #20B2AA 100%);
-}
-
-.fishing-area.freshwater.evening {
-    background: linear-gradient(180deg, #4B0082 0%, #2F4F4F 100%);
-}
-
-/* 湖泊環境 */
-.fishing-area.lake .water {
-    background: linear-gradient(180deg, #5F9EA0 0%, #008B8B 70%, #2F4F4F 100%);
-}
-
-.fishing-area.lake.morning {
-    background: linear-gradient(180deg, #87CEEB 0%, #5F9EA0 100%);
-}
-
-.fishing-area.lake.noon {
-    background: linear-gradient(180deg, #00BFFF 0%, #008B8B 100%);
-}
-
-.fishing-area.lake.evening {
-    background: linear-gradient(180deg, #4B0082 0%, #2F4F4F 100%);
-}
+/* 湖泊 */
+.fishing-area.lake .sky { background: linear-gradient(180deg, #bde0fe 0%, #e0f2fe 100%); }
+.fishing-area.lake .water { background: linear-gradient(180deg, #74c69d 0%, #95d5b2 70%, #52b788 100%); }
+.fishing-area.lake.evening .sky { background: linear-gradient(180deg, #457b9d 0%, #6b9db7 100%); }
+.fishing-area.lake.evening .water { background: linear-gradient(180deg, #1d3557 0%, #457b9d 70%, #14213d 100%); filter: brightness(0.7); }
 
 /* 太陽和月亮 */
 .fishing-area.morning .sun,

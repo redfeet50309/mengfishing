@@ -34,7 +34,8 @@
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 }
 
-/* 指針樣式 */
+/* 指針樣式 (Roo: Commented out conflicting styles from this older file) */
+/*
 .wheel-pointer {
   position: absolute;
   top: -30px;
@@ -59,8 +60,10 @@
   border-radius: 50%;
   margin: -5px auto 0;
 }
+*/
 
-/* 指針停止時的動畫效果 */
+/* 指針停止時的動畫效果 (Roo: Commented out as it targets the old structure) */
+/*
 @keyframes pointerVibrate {
   0%, 100% { transform: translateX(-50%) rotate(0deg); }
   25% { transform: translateX(-50%) rotate(-3deg); }
@@ -70,6 +73,7 @@
 .pointer-stopping {
   animation: pointerVibrate 0.5s ease-in-out;
 }
+*/
 
 /* 稀有度圖例 */
 .rarity-legend {
