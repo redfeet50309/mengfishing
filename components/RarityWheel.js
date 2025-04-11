@@ -1,7 +1,8 @@
 // components/RarityWheel.js
-import { ref, computed, onMounted, watch } from 'vue';
+// Roo: Removed import for non-module script
+// import { ref, computed, onMounted, watch } from 'vue';
 
-export default {
+const RarityWheelComponentDefinition = {
   name: 'RarityWheel',
   props: {
     rarities: {
@@ -27,33 +28,48 @@ export default {
   },
   
   setup(props, { emit }) {
-    const wheelRef = ref(null);
-    const rotation = ref(0);
-    const targetRotation = ref(0);
-    const animationId = ref(null);
-    const spinComplete = ref(false);
+    // Roo: Use global Vue object
+    const wheelRef = Vue.ref(null);
+    const rotation = Vue.ref(0);
+    const targetRotation = Vue.ref(0);
+    const animationId = Vue.ref(null);
+    const spinComplete = Vue.ref(false); // Roo: Indicates if the spin animation finished
+    const highlightedSegmentName = Vue.ref(''); // Roo: Track which segment name is highlighted
+    const highlightTimeoutId = Vue.ref(null); // Roo: To clear previous highlight timeout
+
+    const totalSegments = Vue.computed(() => props.rarities.length);
+    const segmentAngle = Vue.computed(() => 360 / totalSegments.value);
     
-    const totalSegments = computed(() => props.rarities.length);
-    const segmentAngle = computed(() => 360 / totalSegments.value);
-    
-    // 計算每個稀有度區段的起始角度和結束角度
-    const segments = computed(() => {
+    // Roo: Change segments from computed to ref to allow modification (highlighting)
+    const segments = Vue.ref([]);
+
+    function updateSegments() {
       let currentAngle = 0;
-      return props.rarities.map(rarity => {
+      segments.value = props.rarities.map(rarity => {
         const startAngle = currentAngle;
         const endAngle = currentAngle + (rarity.probability * 360);
-        currentAngle = endAngle;
-        
+        currentAngle = endAngle % 360; // Ensure angle stays within 360
+
         return {
           ...rarity,
           startAngle,
-          endAngle
+          endAngle,
+          isHighlighted: false // Roo: Add highlight state
         };
       });
+    }
+
+    // Roo: Initial calculation and watch for prop changes
+    Vue.onMounted(() => {
+      updateSegments();
+      // Roo: Log initial ref state
+      console.log('[RarityWheel] Mounted, wheelRef:', wheelRef.value);
     });
-    
-    // 為每個區段創建SVG路徑
-    const segmentPaths = computed(() => {
+    Vue.watch(() => props.rarities, updateSegments, { deep: true });
+
+
+    // 為每個區段創建SVG路徑 (Now depends on segments.value)
+    const segmentPaths = Vue.computed(() => {
       return segments.value.map(segment => {
         return createSectorPath(segment.startAngle, segment.endAngle, 150);
       });
@@ -76,8 +92,15 @@ export default {
     
     // 旋轉輪盤到目標稀有度
     function spinToRarity(rarityName) {
-      if (!rarityName) return;
-      
+      if (!rarityName || !segments.value || segments.value.length === 0) return; // Roo: Add check for segments
+
+      // Roo: Clear previous highlight and timeout
+      clearHighlight();
+      if (highlightTimeoutId.value) {
+        clearTimeout(highlightTimeoutId.value);
+        highlightTimeoutId.value = null;
+      }
+
       // 先找到對應稀有度的段落
       const targetSegment = segments.value.find(seg => seg.name === rarityName);
       if (!targetSegment) return;
@@ -95,8 +118,11 @@ export default {
     
     // 動畫旋轉輪盤
     function startSpinAnimation() {
-      spinComplete.value = false;
-      
+      // Roo: Log ref state at animation start
+      console.log('[RarityWheel] Starting spin animation, wheelRef:', wheelRef.value);
+      spinComplete.value = false; // Roo: Reset spin complete flag
+      clearHighlight(); // Roo: Clear highlight when starting spin
+
       // 確定當前位置和目標位置
       const startRotation = rotation.value % 360;
       const distance = targetRotation.value - startRotation;
@@ -119,31 +145,79 @@ export default {
           return 1 - Math.pow(1 - t, 3);
         };
         
-        rotation.value = startRotation + distance * easeOut(progress);
+        // Roo: Log ref state BEFORE updating rotation
+        console.log('[RarityWheel] Animate frame, wheelRef before update:', wheelRef.value);
+        
+        // Roo: Check if wheel element still exists before updating rotation
+        if (wheelRef.value) {
+            rotation.value = startRotation + distance * easeOut(progress);
+        } else {
+            console.warn('[RarityWheel] wheelRef is null during animation, stopping.'); // Roo: Add warning
+            // Roo: If element is gone, stop the animation
+            cancelAnimationFrame(animationId.value);
+            animationId.value = null;
+            return; // Exit animation loop
+        }
         
         if (progress < 1) {
           animationId.value = requestAnimationFrame(animate);
         } else {
           // 動畫完成
+          rotation.value = targetRotation.value; // Ensure exact final rotation
           spinComplete.value = true;
+          highlightResult(props.resultRarity); // Roo: Highlight the result
           emit('spin-complete', props.resultRarity);
         }
       }
       
       animationId.value = requestAnimationFrame(animate);
     }
-    
+
+    // Roo: Function to highlight the winning segment
+    function highlightResult(rarityName) {
+      clearHighlight(); // Clear previous just in case
+      const segmentIndex = segments.value.findIndex(s => s.name === rarityName);
+      if (segmentIndex !== -1) {
+        segments.value[segmentIndex].isHighlighted = true;
+        highlightedSegmentName.value = rarityName; // Store highlighted name
+
+        // Set timeout to remove highlight after a delay
+        highlightTimeoutId.value = setTimeout(() => {
+           // Roo: Check if component/element still exists before clearing highlight
+           if (wheelRef.value) {
+               clearHighlight();
+           }
+        }, 2500); // Highlight duration: 2.5 seconds
+      }
+    }
+
+    // Roo: Function to clear highlight state from all segments
+    function clearHighlight() {
+        segments.value.forEach(s => s.isHighlighted = false);
+        highlightedSegmentName.value = '';
+        if (highlightTimeoutId.value) {
+          clearTimeout(highlightTimeoutId.value);
+          highlightTimeoutId.value = null;
+        }
+    }
+
     // 監聽結果稀有度的變化
-    watch(() => props.resultRarity, (newRarity) => {
+    Vue.watch(() => props.resultRarity, (newRarity) => {
+      // Roo: Use nextTick to ensure DOM is ready before spinning
       if (newRarity && props.isSpinning) {
-        spinToRarity(newRarity);
+        Vue.nextTick(() => {
+            spinToRarity(newRarity);
+        });
       }
     });
     
     // 監聽旋轉狀態的變化
-    watch(() => props.isSpinning, (isSpinning) => {
+    Vue.watch(() => props.isSpinning, (isSpinning) => {
+      // Roo: Use nextTick to ensure DOM is ready before spinning (redundant check, but safe)
       if (isSpinning && props.resultRarity) {
-        spinToRarity(props.resultRarity);
+         Vue.nextTick(() => {
+            spinToRarity(props.resultRarity);
+         });
       }
     });
     
@@ -151,6 +225,30 @@ export default {
     const manualSpin = (rarityName) => {
       spinToRarity(rarityName);
     };
+
+    // Roo: Add cleanup logic before unmount
+    Vue.onBeforeUnmount(() => {
+      // Roo: Log ref state before unmount
+      console.log('[RarityWheel] Before unmount, wheelRef:', wheelRef.value, 'animationId:', animationId.value, 'highlightTimeoutId:', highlightTimeoutId.value);
+      
+      // Roo: Prioritize cancelling animation frame IMMEDIATELY
+      if (animationId.value) {
+        console.log('[RarityWheel] Cancelling animation frame:', animationId.value);
+        cancelAnimationFrame(animationId.value);
+        animationId.value = null; // Ensure it's nullified
+      }
+
+      // 清除高亮超時
+      if (highlightTimeoutId.value) {
+        console.log('[RarityWheel] Clearing highlight timeout:', highlightTimeoutId.value);
+        clearTimeout(highlightTimeoutId.value);
+        highlightTimeoutId.value = null; // Ensure it's nullified
+      }
+      
+      // Roo: Optional: Explicitly clear the ref (might help prevent race conditions)
+      // wheelRef.value = null;
+      // console.log('[RarityWheel] Explicitly set wheelRef to null');
+    });
     
     return {
       wheelRef,
@@ -158,60 +256,17 @@ export default {
       segments,
       segmentPaths,
       spinComplete,
+      highlightedSegmentName, // Roo: Expose for result display
       manualSpin
     };
   },
   
   // 組件模板
-  template: `
-    <div class="rarity-wheel-container">
-      <div class="rarity-wheel-area">
-        <div class="rarity-wheel" ref="wheelRef" :style="{ transform: 'rotate(' + rotation + 'deg)' }">
-          <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-            <g>
-              <path 
-                v-for="(path, index) in segmentPaths" 
-                :key="'segment-' + index"
-                :d="path"
-                :fill="segments[index].color"
-                stroke="#ffffff"
-                stroke-width="1"
-              />
-              
-              <!-- 稀有度標籤 -->
-              <text 
-                v-for="(segment, index) in segments" 
-                :key="'text-' + index"
-                :x="150 + 120 * Math.cos((segment.startAngle + segment.endAngle) / 2 * Math.PI / 180)"
-                :y="150 + 120 * Math.sin((segment.startAngle + segment.endAngle) / 2 * Math.PI / 180)"
-                text-anchor="middle"
-                dominant-baseline="middle"
-                fill="#ffffff"
-                font-weight="bold"
-                font-size="14"
-                transform="rotate(90, 150, 150)"
-              >
-                {{ segment.name }}
-              </text>
-            </g>
-          </svg>
-        </div>
-        
-        <!-- 指針 -->
-        <div class="wheel-pointer">
-          <div class="pointer"></div>
-          <div class="pointer-base"></div>
-        </div>
-      </div>
-      
-      <!-- 稀有度圖例 -->
-      <div class="rarity-legend">
-        <div v-for="(rarity, index) in rarities" :key="'legend-' + index" class="legend-item">
-          <span class="color-box" :style="{ backgroundColor: rarity.color }"></span>
-          <span class="rarity-name">{{ rarity.name }}</span>
-          <span class="rarity-percentage">{{ (rarity.probability * 100).toFixed(1) }}%</span>
-        </div>
-      </div>
-    </div>
-  `
+  template: '#rarity-wheel-template', // 指向 HTML 中的模板
 };
+
+// Roo: Expose to global scope for file:/// compatibility
+window.GlobalRarityWheelComponent = RarityWheelComponentDefinition;
+
+// Roo: Removed export for non-module script
+// export default RarityWheelComponentDefinition;

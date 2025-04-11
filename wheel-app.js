@@ -87,9 +87,10 @@ window.RarityWheelApp = {
     const vm = app._instance?.proxy;
     if (vm) {
       vm.show();
-      setTimeout(() => {
-        vm.startSpin();
-      }, 500);
+      // Roo: Removed automatic spin on show
+      // setTimeout(() => {
+      //   vm.startSpin();
+      // }, 500);
     }
   },
   hide() {
@@ -101,90 +102,36 @@ window.RarityWheelApp = {
 };
 
 // 頁面加載完成後初始化
-document.addEventListener('DOMContentLoaded', () => {
-  // 註冊RarityWheel組件
-  const RarityWheel = {
-    props: {
-      rarities: Array,
-      isSpinning: Boolean,
-      resultRarity: String
-    },
-    emits: ['spin-complete'],
-    template: `
-      <div class="wheel-component">
-        <div class="wheel-area">
-          <div class="wheel" :class="{ spinning: isSpinning }" ref="wheel">
-            <div 
-              v-for="(rarity, index) in rarities" 
-              :key="index"
-              class="wheel-segment"
-              :style="{
-                '--segment-color': rarity.color,
-                '--segment-start': index * (360 / rarities.length) + 'deg',
-                '--segment-end': (index + 1) * (360 / rarities.length) + 'deg'
-              }"
-            >
-              <span class="segment-label">{{ rarity.name }}</span>
-            </div>
-          </div>
-          <div class="wheel-pointer"></div>
-        </div>
-      </div>
-    `,
-    data() {
-      return {
-        spinning: false,
-        finalAngle: 0
-      };
-    },
-    watch: {
-      isSpinning(newVal) {
-        if (newVal && this.resultRarity) {
-          this.spin(this.resultRarity);
-        }
-      },
-      resultRarity(newVal) {
-        if (this.isSpinning && newVal) {
-          this.spin(newVal);
-        }
-      }
-    },
-    methods: {
-      spin(resultRarity) {
-        if (!this.$refs.wheel) return;
-        
-        // 找到結果稀有度的索引
-        const resultIndex = this.rarities.findIndex(r => r.name === resultRarity);
-        if (resultIndex === -1) return;
-        
-        // 計算目標角度 (段落中點)
-        const segmentSize = 360 / this.rarities.length;
-        const targetAngle = resultIndex * segmentSize + segmentSize / 2;
-        
-        // 額外旋轉圈數 (3-5圈)
-        const extraRotations = 3 + Math.floor(Math.random() * 3);
-        this.finalAngle = extraRotations * 360 + targetAngle;
-        
-        // 應用旋轉動畫
-        this.$refs.wheel.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.2, 1)';
-        this.$refs.wheel.style.transform = `rotate(${-this.finalAngle}deg)`;
-        
-        // 動畫結束後發出事件
-        setTimeout(() => {
-          this.$emit('spin-complete', resultRarity);
-        }, 4500);
-      }
+document.addEventListener('DOMContentLoaded', async () => { // Roo: Make async
+  try {
+    // Roo: Read component from global scope (for file:/// compatibility)
+    // const RarityWheelModule = await import('./components/RarityWheel.js'); // Removed dynamic import
+    const RarityWheelComponent = window.GlobalRarityWheelComponent;
+
+    if (!RarityWheelComponent) {
+      console.error('無法從 RarityWheel.js 加載組件定義');
+      return;
     }
-  };
-  
-  app.component('rarity-wheel', RarityWheel);
-  
-  // 掛載應用
-  const mountEl = document.getElementById('wheel-app');
-  if (mountEl) {
-    app.mount(mountEl);
-    console.log('輪盤應用已初始化');
-  } else {
-    console.error('找不到掛載元素 #wheel-app');
+
+    // Roo: Register the component before mounting
+    app.component('rarity-wheel', RarityWheelComponent);
+    console.log('RarityWheel 組件已註冊');
+
+    // 掛載應用 (Roo: Prioritize the correct visible container)
+    const primaryMountEl = document.getElementById('rarity-wheel-app');
+    const fallbackMountEl = document.getElementById('wheel-app'); // Fallback to the one in hidden modal (less ideal)
+
+    if (primaryMountEl) {
+      app.mount(primaryMountEl);
+      console.log('輪盤應用已初始化並掛載到 #rarity-wheel-app');
+    } else if (fallbackMountEl) {
+      // Fallback if primary target doesn't exist
+      app.mount(fallbackMountEl);
+      console.warn('輪盤應用已掛載到備用目標 #wheel-app');
+    } else {
+      console.error('找不到掛載元素 #rarity-wheel-app 或 #wheel-app');
+    }
+  } catch (error) {
+    console.error('初始化輪盤應用時出錯:', error);
   }
 });

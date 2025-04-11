@@ -149,14 +149,84 @@
         <button id="restart-adventure-btn"><i class="fas fa-redo"></i> 重新開始冒險</button>
     </div>
     
-    <!-- 輪盤容器 (確保隱藏) -->
-    <div id="wheel-container" class="rarity-wheel-modal hidden">
-        <div id="wheel-app"></div>
-    </div>
+    <!-- Roo: Removed redundant hidden wheel container -->
 
     <!-- 腳本引入 -->
     <script src="fish-data.js"></script>
+    <!-- Roo: Load component definition first (as regular script) -->
+    <script src="components/RarityWheel.js"></script>
     <script src="wheel-app.js"></script>
     <script src="game-new.js"></script>
+
+    <!-- Rarity Wheel Template -->
+    <script type="text/x-template" id="rarity-wheel-template">
+        <div class="rarity-wheel-container">
+          <div class="rarity-wheel-area">
+            <div class="rarity-wheel" ref="wheelRef" :style="{ transform: 'rotate(' + rotation + 'deg)' }">
+              <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                  <path
+                    v-for="(path, index) in segmentPaths"
+                    :key="'segment-' + index"
+                    :d="path"
+                    :fill="segments[index].color"
+                    stroke="#ffffff"
+                    stroke-width="1"
+                    :class="{ 'highlight-segment': segments[index].isHighlighted }"
+                  />
+                  
+                  <!-- 稀有度標籤 -->
+                  <!-- Roo: Enhanced Text Labeling -->
+                  <text
+                    v-for="(segment, index) in segments"
+                    :key="'text-' + segment.name + '-' + index"
+                    :x="150 + 115 * Math.cos((segment.startAngle + segment.endAngle) / 2 * Math.PI / 180 - Math.PI / 2)"
+                    :y="150 + 115 * Math.sin((segment.startAngle + segment.endAngle) / 2 * Math.PI / 180 - Math.PI / 2)"
+                    text-anchor="middle"
+                    dominant-baseline="middle"
+                    fill="white"
+                    font-weight="bold"
+                    font-size="13"
+                    :transform="`rotate(${(segment.startAngle + segment.endAngle) / 2}, 150, 150)`"
+                    class="wheel-segment-label"
+                  >
+                    {{ segment.name }}
+                  </text>
+                </g>
+              </svg>
+            </div>
+            
+            <!-- 指針 -->
+            <div class="wheel-pointer">
+              <div class="pointer"></div>
+              <div class="pointer-base"></div>
+            </div>
+          </div>
+          
+          <!-- 稀有度圖例 -->
+          <div class="rarity-legend">
+            <div v-for="(rarity, index) in rarities" :key="'legend-' + index" class="legend-item">
+              <span class="color-box" :style="{ backgroundColor: rarity.color }"></span>
+              <span class="rarity-name">{{ rarity.name }}</span>
+              <span class="rarity-percentage">{{ (rarity.probability * 100).toFixed(1) }}%</span>
+            </div>
+          </div>
+          
+          <!-- Roo: Enhanced Result Display -->
+          <!-- Roo: Enhanced Result Display (Corrected Style Binding) -->
+          <div v-if="spinComplete && highlightedSegmentName"
+               class="wheel-result-display"
+               :style="{
+                 'border-color': segments.find(s => s.name === highlightedSegmentName)?.color || '#555',
+                 'box-shadow': `0 0 15px ${segments.find(s => s.name === highlightedSegmentName)?.color || 'rgba(255,255,255,0.3)'}`
+               }">
+            <span class="result-label">獲得：</span>
+            <span class="result-value" :style="{ color: segments.find(s => s.name === highlightedSegmentName)?.color || 'white' }">{{ highlightedSegmentName }}</span>！
+          </div>
+          <!-- Roo: Placeholder for potential future button or message -->
+          <div v-else class="wheel-result-placeholder" style="height: 24px; margin-top: 10px;"></div>
+        </div>
+    </script>
+    <!-- End Rarity Wheel Template -->
 </body>
 </html>

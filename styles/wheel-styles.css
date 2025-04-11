@@ -7,24 +7,26 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1000;
-  display: flex;
+  display: none; /* Roo: Hide by default, rely on JS/Vue to show */
   justify-content: center;
   align-items: center;
 }
 
-/* 當有 hidden 類時完全隱藏 */
-.rarity-wheel-modal.hidden {
-  display: none !important;
-}
+/* Roo: Removed .hidden rule as display:none is now default */
+/* .rarity-wheel-modal.hidden { */
+/*   display: none !important; */
+/* } */
 
 .rarity-wheel-overlay {
   width: 90%;
   max-width: 500px;
-  background-color: rgba(40, 40, 40, 0.95);
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  /* background-color: rgba(40, 40, 40, 0.95); */
+  background: linear-gradient(145deg, rgba(60, 60, 70, 0.95), rgba(30, 30, 40, 0.98));
+  border-radius: 20px; /* Slightly larger radius */
+  padding: 30px; /* More padding */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); /* Deeper shadow */
   color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
 }
 
 .rarity-wheel-container {
@@ -38,6 +40,9 @@
   margin-bottom: 20px;
   text-align: center;
   color: white;
+  /* Roo: Explicitly hide by default, rely on v-if adding/removing the element */
+  /* display: none;  <-- Let's try removing this first, maybe it was added before? */
+  /* If the overlay still shows, we might need to add display: none here */
   text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
@@ -59,8 +64,12 @@
   height: 250px;
   border-radius: 50%;
   position: relative;
-  border: 5px solid #333;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  /* border: 5px solid #333; */
+  border: 8px solid transparent; /* Make space for gradient border */
+  background-image: linear-gradient(white, white), conic-gradient(from 90deg, #ffd700, #f0c040, #e0a830, #c08020, #a06010, #804000, #a06010, #c08020, #e0a830, #f0c040, #ffd700); /* Gold gradient border */
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.3); /* Adjusted shadow */
   overflow: hidden;
   transform: rotate(0deg);
   transition: transform 0.1s linear;
@@ -94,61 +103,136 @@
   transform-origin: 50% 50%;
   transform: rotate(calc(var(--segment-end) - var(--segment-start)));
   clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 50% 100%);
+  transition: filter 0.3s ease-out, transform 0.3s ease-out; /* Add transition for highlight */
 }
 
-.segment-label {
-  position: absolute;
-  top: 50px;
-  left: 120px;
-  transform: rotate(90deg);
-  color: white;
+/* Roo: Enhanced style for the highlighted segment */
+.highlight-segment {
+  filter: brightness(1.5) drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)); /* Brighter and wider glow */
+  transform: scale(1.03); /* Slightly more enlarge */
+  stroke: #ffffff !important; /* Ensure stroke is white */
+  stroke-width: 2.5px !important; /* Thicker stroke */
+  transition: filter 0.3s ease-out, transform 0.3s ease-out, stroke-width 0.3s ease-out; /* Smooth transition */
+}
+
+/* Roo: Style for SVG text labels (added class in JS) */
+.wheel-segment-label {
+  fill: white;
   font-weight: bold;
-  font-size: 14px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-size: 13px; /* Matched JS */
+  text-anchor: middle;
+  dominant-baseline: middle;
   pointer-events: none;
+  /* Add a subtle black stroke for better readability */
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 2px;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
 }
 
+/* Roo: Enhanced Wheel Pointer Style */
 .wheel-pointer {
   position: absolute;
-  top: 0;
+  top: -15px; /* Move further up */
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
-  height: 40px;
-  background-color: #ff3333;
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  width: 24px; /* Even narrower */
+  height: 40px; /* Slightly shorter */
   z-index: 10;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Roo: Separate pointer shape and base for better styling */
+.wheel-pointer .pointer {
+  width: 100%;
+  height: 30px; /* Main pointer part */
+  background: linear-gradient(180deg, #ff4d4d, #cc0000); /* Sharper red gradient */
+  clip-path: polygon(50% 100%, 0 0, 100% 0); /* Pointing down */
+  filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.7));
+}
+
+.wheel-pointer .pointer-base {
+  width: 16px; /* Smaller base */
+  height: 10px; /* Base height */
+  background-color: #a0a0a0; /* Darker grey base */
+  border-radius: 50%;
+  position: absolute;
+  bottom: -5px; /* Position below the pointer tip */
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .spin-button {
-  padding: 12px 25px;
-  background-color: #4caf50;
+  padding: 12px 30px; /* Wider padding */
+  /* background-color: #4caf50; */
+  background: linear-gradient(145deg, #5cb85c, #4cae4c); /* Green gradient */
   color: white;
   border: none;
-  border-radius: 25px;
-  font-size: 16px;
+  border-radius: 50px; /* More rounded */
+  font-size: 18px; /* Larger font */
   font-weight: bold;
   cursor: pointer;
-  margin-top: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s;
+  margin-top: 25px; /* More space */
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3), inset 0 -2px 2px rgba(0,0,0,0.2); /* Enhanced shadow */
+  transition: all 0.2s ease-out; /* Faster transition */
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
 }
 
-.spin-button:hover {
-  background-color: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+.spin-button:hover:not(:disabled) { /* Add :not(:disabled) */
+  background: linear-gradient(145deg, #62c162, #51b951); /* Lighter green on hover */
+  transform: translateY(-3px); /* Lift more */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.35), inset 0 -2px 2px rgba(0,0,0,0.2); /* Larger shadow on hover */
 }
 
 .spin-button:disabled {
-  background-color: #90a4ae;
+  background: #90a4ae; /* Keep original disabled color */
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); /* Add inset shadow for disabled state */
+  color: #d0d0d0;
+  text-shadow: none;
 }
 
 @keyframes spin-animation {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* Roo: Enhanced style for the result display area */
+.wheel-result-display {
+  margin-top: 25px; /* More space */
+  padding: 12px 20px;
+  background-color: rgba(20, 20, 20, 0.8); /* Darker background */
+  border: 2px solid #555; /* Default border, color overridden by inline style */
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  animation: fadeInResult 0.5s ease-out;
+  transition: border-color 0.3s ease-out, box-shadow 0.3s ease-out; /* Smooth transition for dynamic styles */
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Default shadow, overridden by inline style */
+}
+
+.wheel-result-display .result-label {
+  color: #ccc; /* Slightly dimmer label */
+  font-weight: normal;
+  margin-right: 5px;
+}
+
+.wheel-result-display .result-value {
+  font-weight: bold;
+  /* Color is set dynamically via inline style */
+}
+
+@keyframes fadeInResult {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Roo: Style for the placeholder when result is not shown */
+.wheel-result-placeholder {
+  margin-top: 20px; /* Match the result display margin */
+  /* Height is set inline in the component template */
 }

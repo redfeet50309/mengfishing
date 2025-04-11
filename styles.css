@@ -689,22 +689,27 @@ button:disabled {
     will-change: transform;
 }
 
+/* Roo: Removed overlay styles from this container.
+   The container #rarity-wheel-app should just hold the Vue app.
+   The overlay is handled internally by the Vue component's .rarity-wheel-overlay and v-if. */
 .wheel-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    display: flex;
+    /* position: fixed; */ /* Removed */
+    /* top: 0; */ /* Removed */
+    /* left: 0; */ /* Removed */
+    /* width: 100%; */ /* Removed */
+    /* height: 100%; */ /* Removed */
+    /* background-color: rgba(0, 0, 0, 0.85); */ /* Removed */
+    display: flex; /* Keep flex for centering content if needed */
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    padding: 20px;
+    /* z-index: 1000; */ /* Removed */
+    padding: 20px; /* Keep padding if desired */
     box-sizing: border-box;
-    overflow: hidden;
-    transition: background-color 0.5s ease;
+    /* overflow: hidden; */ /* Removed */
+    /* transition: background-color 0.5s ease; */ /* Removed */
+    /* Add margin or other layout styles if needed */
+    margin: 20px auto; /* Example margin */
 }
 
 /* 轉盤即將停止的視覺效果 */
